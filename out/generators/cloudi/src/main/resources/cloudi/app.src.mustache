@@ -1,0 +1,16 @@
+{application, {{packageName}}, [
+    {description, {{#appDescription}}"{{.}}"{{/appDescription}}{{^appDescription}}"OpenAPI rest server library"{{/appDescription}}},
+    {vsn, "{{apiVersion}}"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        jsx,
+        jesse
+    ]},
+    {env, [
+    ]},
+    {modules, []},
+    {licenses, [{{#licenseInfo}}"{{.}}"{{/licenseInfo}}]},
+    {links, [{{#infoUrl}}"{{.}}"{{/infoUrl}}]}
+]}.
