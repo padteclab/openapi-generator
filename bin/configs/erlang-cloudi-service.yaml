@@ -1,0 +1,4 @@
+generatorName: erlang-cloudi-service
+outputDir: samples/server/petstore/erlang-cloudi-service
+inputSpec: modules/openapi-generator/src/test/resources/3_0/petstore.yaml
+templateDir: modules/openapi-generator/src/main/resources/erlang-cloudi-service

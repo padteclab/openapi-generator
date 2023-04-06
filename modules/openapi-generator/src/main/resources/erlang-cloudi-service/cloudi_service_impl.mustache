@@ -1,0 +1,18 @@
+-module({{packageName}}_impl).
+
+-export([cloudi_service_handle_request/11]).
+
+-record(state,
+    {
+    }).
+
+cloudi_service_handle_request(_RequestType, _Name, _Pattern,
+                              _RequestInfo, _Request,
+                              _Timeout, _Priority,
+                              _TransId, _Pid,
+                              State, _Dispatcher) ->
+    Code = 405,
+    Response = [{<<"error">>, [
+                {<<"code">>, Code},
+                {<<"message">>, <<"The request method is valid but has been disabled and cannot be used.">>}]}],
+    {Code, Response}.
