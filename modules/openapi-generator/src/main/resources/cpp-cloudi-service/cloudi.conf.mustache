@@ -1,0 +1,9 @@
+[[
+  {prefix, "{{basePathWithoutHost}}/{{packageName}}"},
+  {file_path, "{{binFilepath}}"},
+  {env, [{"LD_LIBRARY_PATH",
+          "/usr/local/lib/:{{externalFileFolder}}:/usr/local/lib/cloudi-2.0.5/api/c/"}]},
+  {timeout_init, 30000},
+  {timeout_async, 30000},
+  {timeout_sync, 30000}
+]]

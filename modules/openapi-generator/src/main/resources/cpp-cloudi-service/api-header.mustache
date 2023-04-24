@@ -1,0 +1,80 @@
+{{>licenseInfo}}
+{{#operations}}/*
+ * {{classname}}.h
+ *
+ * {{description}}
+ */
+
+#ifndef {{classname}}_H_
+#define {{classname}}_H_
+
+{{{defaultInclude}}}
+{{^hasModelImport}}#include <nlohmann/json.hpp>{{/hasModelImport}}
+#include <optional>
+#include <utility>
+#include "cloudi.hpp"
+
+{{#imports}}{{{import}}}
+{{/imports}}
+
+namespace {{apiNamespace}}
+{
+
+class {{declspec}} {{classname}} {
+public:
+  explicit {{classname}}(const std::shared_ptr<CloudI::API> &api);
+  virtual ~{{classname}}() = default;
+  void init();
+
+  static const std::string base;
+
+private:
+  const std::shared_ptr<CloudI::API> m_api;
+
+  void setupRoutes();
+
+  {{#operation}}
+  void {{operationIdSnakeCase}}_handler(CloudI::API const &api, int const request_type,
+      std::string const &name, std::string const &pattern,
+      void const *const request_info,
+      uint32_t const request_info_size,
+      void const *const request, uint32_t const request_size,
+      uint32_t timeout, int8_t priority,
+      char const *const trans_id, char const *const pid,
+      uint32_t const pid_size);
+  {{/operation}}
+
+  void {{classnameSnakeLowerCase}}_default_handler(CloudI::API const &api, int const request_type,
+        std::string const &name, std::string const &pattern,
+        void const *const request_info,
+        uint32_t const request_info_size,
+        void const *const request, uint32_t const request_size,
+        uint32_t timeout, int8_t priority,
+        char const *const trans_id, char const *const pid,
+        uint32_t const pid_size);
+
+  {{#operation}}
+  /// <summary>
+  /// {{summary}}
+  /// </summary>
+  /// <remarks>
+  /// {{notes}}
+  /// </remarks>
+  virtual void {{operationIdSnakeCase}}(CloudI::API const &api, int const request_type,
+      std::string const &name, std::string const &pattern,
+      void const *const request_info,
+      uint32_t const request_info_size,
+      void const *const request, uint32_t const request_size,
+      uint32_t timeout, int8_t priority,
+      char const *const trans_id, char const *const pid,
+      uint32_t const pid_size) = 0;
+
+  {{/operation}}
+
+};
+
+} // namespace {{apiNamespace}}
+
+#endif /* {{classname}}_H_ */
+
+{{/operations}}

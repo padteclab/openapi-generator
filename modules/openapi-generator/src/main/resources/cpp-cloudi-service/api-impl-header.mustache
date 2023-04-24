@@ -1,0 +1,51 @@
+{{>licenseInfo}}
+
+{{#operations}}/*
+* {{classname}}Impl.h
+*
+* {{description}}
+*/
+
+#ifndef {{classnameSnakeUpperCase}}_IMPL_H_
+#define {{classnameSnakeUpperCase}}_IMPL_H_
+
+{{{defaultInclude}}}
+#include <memory>
+#include <optional>
+
+#include <{{classname}}.h>
+#include "cloudi.hpp"
+
+{{#imports}}{{{import}}}
+{{/imports}}
+
+namespace {{apiNamespace}}
+{
+
+{{#hasModelImport}}
+using namespace {{modelNamespace}};{{/hasModelImport}}
+
+class {{declspec}} {{classname}}Impl : public {{apiNamespace}}::{{classname}} {
+public:
+  explicit {{classname}}Impl(const std::shared_ptr<CloudI::API> &api);
+  ~{{classname}}Impl() override = default;
+
+  {{#operation}}
+  void {{operationIdSnakeCase}}(CloudI::API const &api, int const request_type,
+      std::string const &name, std::string const &pattern,
+      void const *const request_info,
+      uint32_t const request_info_size,
+      void const *const request,
+      uint32_t const request_size, uint32_t timeout,
+      int8_t priority, char const *const trans_id,
+      char const *const pid, uint32_t const pid_size);
+  {{/operation}}
+
+};
+
+} // namespace {{apiNamespace}}
+
+{{/operations}}
+
+
+#endif

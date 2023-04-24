@@ -1,0 +1,67 @@
+{{>licenseInfo}}
+{{#operations}}
+
+#include "{{classname}}.h"
+#include "{{prefix}}Helpers.h"
+
+namespace {{apiNamespace}}
+{
+
+using namespace {{helpersNamespace}};
+{{#hasModelImport}}
+using namespace {{modelNamespace}};{{/hasModelImport}}
+
+const std::string {{classname}}::base = "{{basePathWithoutHost}}";
+
+{{classname}}::{{classname}}(const std::shared_ptr<CloudI::API> &api)
+  : m_api(api)
+{
+}
+
+void {{classname}}::init() {
+  this->setupRoutes();
+}
+
+void {{classname}}::setupRoutes() {
+  int result = 0;
+  {{#operation}}
+  result =
+      m_api->subscribe("{{{vendorExtensions.x-codegen-cloudi-path}}}", *this, &{{classname}}::{{operationIdSnakeCase}}_handler);
+  assert(result == CloudI::API::return_value::success);
+  {{/operation}}
+
+
+  // Default handler, called when a route is not found
+  result = m_api->subscribe("*", *this, &{{classname}}::{{classnameSnakeLowerCase}}_default_handler);
+  assert(result == CloudI::API::return_value::success);
+}
+
+{{#operation}}
+void {{classname}}::{{operationIdSnakeCase}}_handler(
+    CloudI::API const &api, int const request_type, std::string const &name,
+    std::string const &pattern, void const *const request_info,
+    uint32_t const request_info_size, void const *const request,
+    uint32_t const request_size, uint32_t timeout, int8_t priority,
+    char const *const trans_id, char const *const pid,
+    uint32_t const pid_size) {
+  this->{{operationIdSnakeCase}}(api, request_type, name, pattern, request_info, request_info_size,
+              request, request_size, timeout, priority, trans_id, pid,
+              pid_size);
+}
+{{/operation}}
+
+void {{classname}}::{{classnameSnakeLowerCase}}_default_handler(
+    CloudI::API const &api, int const request_type, std::string const &name,
+    std::string const &pattern, void const *const request_info,
+    uint32_t const request_info_size, void const *const request,
+    uint32_t const request_size, uint32_t timeout, int8_t priority,
+    char const *const trans_id, char const *const pid,
+    uint32_t const pid_size) {
+  std::string message("Default Handler: service name not implemented!");
+  api.return_(request_type, name, pattern, "", 0, message.c_str(),
+              message.size(), timeout, trans_id, pid, pid_size);
+}
+
+} // namespace {{apiNamespace}}
+
+{{/operations}}

@@ -1,0 +1,37 @@
+{{>licenseInfo}}
+{{#operations}}
+
+#include "{{classname}}Impl.h"
+
+{{#apiNamespaceDeclarations}}
+namespace {{this}} {
+{{/apiNamespaceDeclarations}}
+
+{{#hasModelImport}}
+using namespace {{modelNamespace}};{{/hasModelImport}}
+
+{{classname}}Impl::{{classname}}Impl(const std::shared_ptr<CloudI::API> &api)
+    : {{classname}}(api)
+{
+}
+
+{{#operation}}
+void {{classname}}Impl::{{operationIdSnakeCase}}(CloudI::API const &api, int const request_type,
+    std::string const &name, std::string const &pattern,
+    void const *const request_info,
+    uint32_t const request_info_size,
+    void const *const request,
+    uint32_t const request_size, uint32_t timeout,
+    int8_t priority, char const *const trans_id,
+    char const *const pid, uint32_t const pid_size) {
+  // Your Implementation Here
+  api.return_(request_type, name, pattern, "", 0, name.c_str(), name.size(),
+              timeout, trans_id, pid, pid_size);
+}
+{{/operation}}
+
+{{#apiNamespaceDeclarations}}
+}
+{{/apiNamespaceDeclarations}}
+
+{{/operations}}
