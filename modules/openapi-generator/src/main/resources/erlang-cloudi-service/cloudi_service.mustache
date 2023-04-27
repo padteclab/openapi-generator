@@ -129,4 +129,5 @@ process_response({HttpCode, []}, Acc) ->
 
 fmt_cloudi_response(HttpCode, Response) ->
   {cloudi_x_jsx:encode(Response),
-   [{<<"status">>, list_to_binary(integer_to_list(HttpCode))}]}.
+   [{<<"status">>, list_to_binary(integer_to_list(HttpCode))},
+    {<<"content-type">>, <<"application/json">>}]}.
