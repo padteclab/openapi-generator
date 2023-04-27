@@ -91,7 +91,12 @@ get_subscription_paths(ValidatorState, Dispatcher) ->
                     end, [], Value) ++ AccIn
                   end, [], Paths).
 
+make_cloudi_path(Path, <<"patch">>, Dispatcher) ->
+  make_cloudi_path1(Path, <<"connect">>, Dispatcher);
 make_cloudi_path(Path, Method, Dispatcher) ->
+  make_cloudi_path1(Path, Method, Dispatcher).
+
+make_cloudi_path1(Path, Method, Dispatcher) ->
     cloudi_service:prefix(Dispatcher) ++
         re:replace(binary_to_list(Path),"{[a-zA-Z0-9]*}","?",[global,{return,list}]) ++
         "/" ++
