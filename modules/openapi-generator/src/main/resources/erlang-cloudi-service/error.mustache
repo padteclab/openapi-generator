@@ -1,0 +1,24 @@
+-record(error, {internal_code, title, detail}).
+
+% HTTP status codes
+-define(OK, 200).
+-define(CREATED, 200).
+-define(NOT_FOUND, 404).
+-define(CONFLICT, 409).
+-define(UNPROCESSABLE_ENTITY, 422).
+-define(INTERNAL_SERVER_ERROR, 500).
+-define(NOT_IMPLEMENTED, 501).
+
+% Internal errror codes
+-define(ENOTIMPLEMENTED, #error{
+          internal_code = 1,
+          title = "Not implemented request",
+          detail = "The server does not support the functionality required to fulfill the request"}).
+-define(EMISSINGFIELD, #error{
+          internal_code = 2,
+          title = "Validation Failed",
+          detail = "A required field on a resource has not been set."}).
+-define(EINVALID, #error{
+          internal_code = 3,
+          title = "Validation Failed",
+          detail = "The formatting of a field is invalid. Review the documentation for more specific information."}).

@@ -7,6 +7,7 @@
          cloudi_service_handle_info/3,
          cloudi_service_terminate/3]).
 
+-include("error.hrl").
 -include_lib("cloudi_core/include/cloudi_logger.hrl").
 
 -record(state, {
@@ -49,7 +50,7 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
 
     case {{packageName}}_api:populate_request(OperationID, Req0, ValidatorState) of
         {ok, Populated, Req1} ->
-          {Code, Response0} = {{packageName}}_impl:cloudi_service_handle_request(
+          Response0 = {{packageName}}_impl:cloudi_service_handle_request(
               RequestType,
               Name,
               Pattern,
@@ -61,17 +62,25 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
               Pid,
               State,
               Dispatcher),
+
+          {HttpCode, Response1} = process_response(Response0),
             _ = {{packageName}}_api:validate_response(
                 OperationID,
-                Code,
-                Response0,
+                HttpCode,
+                Response1,
                 ValidatorState
             ),
-          {Response, ResponseInfo} = process_response({Code, Response0}),
+
+          {Response, ResponseInfo} = fmt_cloudi_response(HttpCode, Response1),
           {reply, ResponseInfo, Response, State};
         {error, Reason, Req1} ->
-          Response = lists:flatten(io_lib:format("Unable to process request for ~p: ~p", [OperationID, Reason])),
-          {reply, [{<<"status">>, <<"404">>}], <<>>, State}
+          InternalError = case Reason of
+            {invalid_body, _, _} -> ?EINVALID;
+            {wrong_param, _, _, _} -> ?EMISSINGFIELD
+          end,
+          {HttpCode, Response1} = process_response({?UNPROCESSABLE_ENTITY, [InternalError]}),
+          {Response, ResponseInfo} = fmt_cloudi_response(HttpCode, Response1),
+          {reply, ResponseInfo, Response, State}
     end.
 
 cloudi_service_handle_info(Request, State, _Dispatcher) ->
@@ -102,5 +111,22 @@ make_cloudi_path1(Path, Method, Dispatcher) ->
         "/" ++
         binary_to_list(Method).
 
-process_response({Code, Reponse}) ->
-  {cloudi_x_jsx:encode(Reponse), [{<<"status">>, list_to_binary(integer_to_list(Code))}]}.
+process_response({HttpCode, ErrorList=[#error{}|_]}) ->
+  process_response({HttpCode, ErrorList}, []);
+process_response({HttpCode, Response}) ->
+  {HttpCode, Response};
+process_response({HttpCode}) ->
+  {HttpCode, <<>>}.
+
+process_response({HttpCode, [#error{internal_code=InternalCode, title=Title, detail=Detail}|Rest]}, Acc) ->
+  Error = [{<<"code">>, InternalCode},
+           {<<"title">>, list_to_binary(Title)},
+           {<<"detail">>, list_to_binary(Detail)}],
+  process_response({HttpCode, Rest}, Acc ++ [Error]);
+process_response({HttpCode, []}, Acc) ->
+  Errors = [{<<"errors">>, Acc}],
+  {HttpCode, Errors}.
+
+fmt_cloudi_response(HttpCode, Response) ->
+  {cloudi_x_jsx:encode(Response),
+   [{<<"status">>, list_to_binary(integer_to_list(HttpCode))}]}.

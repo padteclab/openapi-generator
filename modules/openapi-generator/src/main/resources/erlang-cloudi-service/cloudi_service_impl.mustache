@@ -6,13 +6,7 @@
     {
     }).
 
-cloudi_service_handle_request(_RequestType, _Name, _Pattern,
-                              _RequestInfo, _Request,
-                              _Timeout, _Priority,
-                              _TransId, _Pid,
-                              State, _Dispatcher) ->
-    Code = 405,
-    Response = [{<<"error">>, [
-                {<<"code">>, Code},
-                {<<"message">>, <<"The request method is valid but has been disabled and cannot be used.">>}]}],
-    {Code, Response}.
+cloudi_service_handle_request(_RequestType, _Name, _Pattern, _RequestInfo,
+                              _Request, _Timeout, _Priority, _TransId, _Pid,
+                              _State, _Dispatcher) ->
+  {?NOT_IMPLEMENTED, [?ENOTIMPLEMENTED]}.
