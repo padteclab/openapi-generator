@@ -25,8 +25,7 @@ void {{classname}}Impl::{{operationIdSnakeCase}}(CloudI::API const &api, int con
     int8_t priority, char const *const trans_id,
     char const *const pid, uint32_t const pid_size) {
   // Your Implementation Here
-  api.return_(request_type, name, pattern, "", 0, name.c_str(), name.size(),
-              timeout, trans_id, pid, pid_size);
+  API_RETURN_ENOTIMPLEMENTED_SOURCE(name.c_str());
 }
 {{/operation}}
 

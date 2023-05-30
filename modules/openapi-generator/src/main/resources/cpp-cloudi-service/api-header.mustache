@@ -12,6 +12,8 @@
 {{^hasModelImport}}#include <nlohmann/json.hpp>{{/hasModelImport}}
 #include <optional>
 #include <utility>
+#include "{{packageName}}Error.h"
+#include "{{packageName}}Response.h"
 #include "cloudi.hpp"
 
 {{#imports}}{{{import}}}
@@ -33,6 +35,10 @@ private:
 
   void setupRoutes();
 
+  virtual {{packageName}}Error handleParsingException(const std::exception& ex) const noexcept;
+
+  virtual {{packageName}}Error handleOperationException(const std::exception& ex) const noexcept;
+
   {{#operation}}
   void {{operationIdSnakeCase}}_handler(CloudI::API const &api, int const request_type,
       std::string const &name, std::string const &pattern,
@@ -45,13 +51,13 @@ private:
   {{/operation}}
 
   void {{classnameSnakeLowerCase}}_default_handler(CloudI::API const &api, int const request_type,
-        std::string const &name, std::string const &pattern,
-        void const *const request_info,
-        uint32_t const request_info_size,
-        void const *const request, uint32_t const request_size,
-        uint32_t timeout, int8_t priority,
-        char const *const trans_id, char const *const pid,
-        uint32_t const pid_size);
+      std::string const &name, std::string const &pattern,
+      void const *const request_info,
+      uint32_t const request_info_size,
+      void const *const request, uint32_t const request_size,
+      uint32_t timeout, int8_t priority,
+      char const *const trans_id, char const *const pid,
+      uint32_t const pid_size);
 
   {{#operation}}
   /// <summary>
@@ -68,7 +74,6 @@ private:
       uint32_t timeout, int8_t priority,
       char const *const trans_id, char const *const pid,
       uint32_t const pid_size) = 0;
-
   {{/operation}}
 
 };

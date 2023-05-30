@@ -156,7 +156,12 @@ public class CppCloudiServiceCodegen extends AbstractCppCodegen implements Codeg
     } else {
       additionalProperties.put(CodegenConstants.PACKAGE_NAME, DEFAULT_PACKAGE_NAME);
     }
+    additionalProperties.put("packageNameUpperCase", this.packageName.toUpperCase(Locale.ROOT));
 
+    supportingFiles.add(new SupportingFile("api-error-header.mustache", "api", this.packageName + "Error.h"));
+    supportingFiles.add(new SupportingFile("api-response-header.mustache", "api", this.packageName + "Response.h"));
+    supportingFiles.add(new SupportingFile("api-response-source.mustache", "api", this.packageName + "Response.cpp"));
+    supportingFiles.add(new SupportingFile("api-impl-error-header.mustache", "impl", this.packageName + "ErrorImpl.h"));
     supportingFiles.add(
         new SupportingFile("helpers-header.mustache", "model", modelNamePrefix + "Helpers.h"));
     supportingFiles.add(
@@ -168,16 +173,6 @@ public class CppCloudiServiceCodegen extends AbstractCppCodegen implements Codeg
     supportingFiles.add(new SupportingFile(
         "cloudi.conf.mustache", "", toPrivCloudiFilePath(this.packageName, "conf")));
 
-    // TBD: modelNamePrefix
-    // if (additionalProperties.containsKey("modelNamePrefix")) {
-    //     additionalProperties().put("prefix", modelNamePrefix);
-    //     supportingFiles.clear();
-    //     supportingFiles.add(new SupportingFile("helpers-header.mustache", "model",
-    //     modelNamePrefix + "Helpers.h")); supportingFiles.add(new
-    //     SupportingFile("helpers-source.mustache", "model", modelNamePrefix + "Helpers.cpp"));
-    //     supportingFiles.add(new SupportingFile("main-cloudi-service.mustache", "",
-    //     modelNamePrefix + "main-" + this.packageName + ".cpp"));
-    // }
     if (additionalProperties.containsKey(RESERVED_WORD_PREFIX_OPTION)) {
       reservedWordPrefix = (String) additionalProperties.get(RESERVED_WORD_PREFIX_OPTION);
     }
@@ -282,8 +277,46 @@ public class CppCloudiServiceCodegen extends AbstractCppCodegen implements Codeg
     operations.put("classnameSnakeLowerCase", underscore(classname).toLowerCase(Locale.ROOT));
     List<CodegenOperation> operationList = operations.getOperation();
     for (CodegenOperation op : operationList) {
-      // Vendor / CloudI specific
-      // TBD
+
+      // BEGIN vendor-specific CloudI
+      boolean consumeJson = false;
+      boolean isParsingSupported = true;
+
+      // body string or date
+      if (op.bodyParam != null) {
+        if (op.bodyParam.vendorExtensions == null) {
+            op.bodyParam.vendorExtensions = new HashMap<>();
+        }
+
+        boolean isStringOrDate = op.bodyParam.isString || op.bodyParam.isDate;
+        op.bodyParam.vendorExtensions.put("x-codegen-cloudi-is-string-or-date", isStringOrDate);
+      }
+
+      // media-type
+      if (op.consumes != null) {
+        for (Map<String, String> consume : op.consumes) {
+            if (consume.get("mediaType") != null && consume.get("mediaType").equals("application/json")) {
+                consumeJson = true;
+            }
+        }
+      }
+
+      for (CodegenParameter param : op.allParams) {
+        if (param.isFormParam) isParsingSupported = false;
+        if (param.isFile) isParsingSupported = false;
+        if (param.isCookieParam) isParsingSupported = false;
+
+        // not sure if we need set dataType for header/query params
+      }
+
+      // vendor extensions
+      if (op.vendorExtensions == null) {
+        op.vendorExtensions = new HashMap<>();
+      }
+      op.vendorExtensions.put("x-codegen-cloudi-consumes-json", consumeJson);
+      op.vendorExtensions.put("x-codegen-cloudi-is-parsing-supported", isParsingSupported);
+
+      // END vendor-specific CloudI
 
       // Check if any one of the operations needs a model, then at API file level, at least one
       // model has to be included.

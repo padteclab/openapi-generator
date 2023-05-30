@@ -30,10 +30,27 @@ void {{classname}}::setupRoutes() {
   assert(result == CloudI::API::return_value::success);
   {{/operation}}
 
-
   // Default handler, called when a route is not found
   result = m_api->subscribe("*", *this, &{{classname}}::{{classnameSnakeLowerCase}}_default_handler);
   assert(result == CloudI::API::return_value::success);
+}
+
+{{packageName}}Error {{classname}}::handleParsingException(const std::exception& ex) const noexcept
+{
+  try {
+    throw;
+  } catch (nlohmann::detail::exception &e) {
+    return {{packageName}}Error{-1, "Bad Request", "", e.what()};
+  } catch ({{helpersNamespace}}::ValidationException &e) {
+    return {{packageName}}Error{-1, "Bad Request", "", e.what()};
+  } catch (std::exception &e) {
+    return {{packageName}}Error{-1, "Internal Server Error", "", e.what()};
+  }
+}
+
+{{packageName}}Error {{classname}}::handleOperationException(const std::exception& ex) const noexcept
+{
+  return {{packageName}}Error{-1, "Internal Server Error", "", ex.what()};
 }
 
 {{#operation}}
@@ -44,9 +61,41 @@ void {{classname}}::{{operationIdSnakeCase}}_handler(
     uint32_t const request_size, uint32_t timeout, int8_t priority,
     char const *const trans_id, char const *const pid,
     uint32_t const pid_size) {
+  {{#vendorExtensions.x-codegen-cloudi-is-parsing-supported}}
+  {{#bodyParam}}
+  {{^isPrimitiveType}}{{^isContainer}}
+  {{baseType}} {{paramName}};{{/isContainer}}{{#isArray}}std::vector<{{items.baseType}}> {{paramName}};{{/isArray}}{{#isMap}}std::map<std::string, {{items.baseType}}> {{paramName}};{{/isMap}}{{/isPrimitiveType}}
+  {{#isPrimitiveType}}
+  {{dataType}} {{paramName}};
+  {{/isPrimitiveType}}
+  {{/bodyParam}}
+  {{#hasBodyParam}}
+  {{#bodyParam}}
+  try {
+    {{^isPrimitiveType}}
+    nlohmann::json::parse(reinterpret_cast<const char *>(request)).get_to({{paramName}});{{#isArray}}
+    for (const auto& validationParam : {{paramName}})
+      validationParam.validate();{{/isArray}}{{^isArray}}
+    {{paramName}}.validate();{{/isArray}}
+    {{/isPrimitiveType}}
+    {{#isPrimitiveType}}
+      {{paramName}} = request;
+    {{/isPrimitiveType}}
+  } catch (std::exception &e) {
+    {{packageName}}Error error_info;
+    error_info = this->handleParsingException(e);
+    API_RETURN_EINVALID_SOURCE(error_info.source.c_str());
+    return;
+  }
+  {{/bodyParam}}
+  {{/hasBodyParam}}
   this->{{operationIdSnakeCase}}(api, request_type, name, pattern, request_info, request_info_size,
-              request, request_size, timeout, priority, trans_id, pid,
-              pid_size);
+      request, request_size, timeout, priority, trans_id, pid, pid_size);
+  {{/vendorExtensions.x-codegen-cloudi-is-parsing-supported}}
+  {{^vendorExtensions.x-codegen-cloudi-is-parsing-supported}}
+  this->{{operationIdSnakeCase}}(api, request_type, name, pattern, request_info, request_info_size,
+      request, request_size, timeout, priority, trans_id, pid, pid_size);
+  {{/vendorExtensions.x-codegen-cloudi-is-parsing-supported}}
 }
 {{/operation}}
 
@@ -57,9 +106,7 @@ void {{classname}}::{{classnameSnakeLowerCase}}_default_handler(
     uint32_t const request_size, uint32_t timeout, int8_t priority,
     char const *const trans_id, char const *const pid,
     uint32_t const pid_size) {
-  std::string message("Default Handler: service name not implemented!");
-  api.return_(request_type, name, pattern, "", 0, message.c_str(),
-              message.size(), timeout, trans_id, pid, pid_size);
+  API_RETURN_ENOTFOUND_SOURCE(name.c_str());
 }
 
 } // namespace {{apiNamespace}}
