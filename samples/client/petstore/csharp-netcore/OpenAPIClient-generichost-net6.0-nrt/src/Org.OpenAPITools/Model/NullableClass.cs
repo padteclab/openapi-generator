@@ -60,7 +60,10 @@ namespace Org.OpenAPITools.Model
             ObjectAndItemsNullableProp = objectAndItemsNullableProp;
             ObjectNullableProp = objectNullableProp;
             StringProp = stringProp;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Gets or Sets ArrayItemsNullable
@@ -158,12 +161,13 @@ namespace Org.OpenAPITools.Model
             sb.Append("}\n");
             return sb.ToString();
         }
+
         /// <summary>
         /// To validate all properties of the instance
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             yield break;
         }
@@ -201,18 +205,18 @@ namespace Org.OpenAPITools.Model
 
             JsonTokenType startingTokenType = utf8JsonReader.TokenType;
 
-            List<Object> arrayItemsNullable = default;
-            Dictionary<string, Object> objectItemsNullable = default;
-            List<Object> arrayAndItemsNullableProp = default;
-            List<Object> arrayNullableProp = default;
+            List<Object>? arrayItemsNullable = default;
+            Dictionary<string, Object>? objectItemsNullable = default;
+            List<Object>? arrayAndItemsNullableProp = default;
+            List<Object>? arrayNullableProp = default;
             bool? booleanProp = default;
             DateTime? dateProp = default;
             DateTime? datetimeProp = default;
             int? integerProp = default;
             decimal? numberProp = default;
-            Dictionary<string, Object> objectAndItemsNullableProp = default;
-            Dictionary<string, Object> objectNullableProp = default;
-            string stringProp = default;
+            Dictionary<string, Object>? objectAndItemsNullableProp = default;
+            Dictionary<string, Object>? objectNullableProp = default;
+            string? stringProp = default;
 
             while (utf8JsonReader.Read())
             {
@@ -282,17 +286,11 @@ namespace Org.OpenAPITools.Model
                 }
             }
 
-#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-#pragma warning disable CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
-
             if (arrayItemsNullable == null)
                 throw new ArgumentNullException(nameof(arrayItemsNullable), "Property is required for class NullableClass.");
 
             if (objectItemsNullable == null)
                 throw new ArgumentNullException(nameof(objectItemsNullable), "Property is required for class NullableClass.");
-
-#pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-#pragma warning restore CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
 
             return new NullableClass(arrayItemsNullable, objectItemsNullable, arrayAndItemsNullableProp, arrayNullableProp, booleanProp, dateProp, datetimeProp, integerProp, numberProp, objectAndItemsNullableProp, objectNullableProp, stringProp);
         }

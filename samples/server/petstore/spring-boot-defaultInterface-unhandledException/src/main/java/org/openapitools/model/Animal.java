@@ -7,9 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.openapitools.model.BigCat;
-import org.openapitools.model.Cat;
-import org.openapitools.model.Dog;
 import org.openapitools.jackson.nullable.JsonNullable;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
@@ -42,11 +39,6 @@ public class Animal {
 
   private String color = "red";
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link Animal#Animal(String)}
-   */
-  @Deprecated
   public Animal() {
     super();
   }

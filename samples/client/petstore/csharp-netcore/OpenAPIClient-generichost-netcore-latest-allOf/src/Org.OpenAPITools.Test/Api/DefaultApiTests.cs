@@ -59,7 +59,8 @@ namespace Org.OpenAPITools.Test.Api
         {
             string personId = default;
             var response = await _instance.ListAsync(personId);
-            Assert.IsType<Person>(response);
+            var model = response.AsModel();
+            Assert.IsType<Person>(model);
         }
     }
 }

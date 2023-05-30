@@ -7,12 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.openapitools.model.Bar;
-import org.openapitools.model.BarCreate;
-import org.openapitools.model.Foo;
-import org.openapitools.model.Pasta;
-import org.openapitools.model.Pizza;
-import org.openapitools.model.PizzaSpeziale;
 import org.openapitools.jackson.nullable.JsonNullable;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
@@ -54,11 +48,6 @@ public class Entity {
 
   private String atType;
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link Entity#Entity(String)}
-   */
-  @Deprecated
   public Entity() {
     super();
   }

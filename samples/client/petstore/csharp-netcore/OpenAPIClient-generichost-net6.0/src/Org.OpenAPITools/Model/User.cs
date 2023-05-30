@@ -58,7 +58,10 @@ namespace Org.OpenAPITools.Model
             AnyTypeProp = anyTypeProp;
             AnyTypePropNullable = anyTypePropNullable;
             ObjectWithNoDeclaredPropsNullable = objectWithNoDeclaredPropsNullable;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Gets or Sets Email
@@ -167,12 +170,13 @@ namespace Org.OpenAPITools.Model
             sb.Append("}\n");
             return sb.ToString();
         }
+
         /// <summary>
         /// To validate all properties of the instance
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             yield break;
         }
@@ -202,12 +206,12 @@ namespace Org.OpenAPITools.Model
 
             string email = default;
             string firstName = default;
-            long id = default;
+            long? id = default;
             string lastName = default;
             Object objectWithNoDeclaredProps = default;
             string password = default;
             string phone = default;
-            int userStatus = default;
+            int? userStatus = default;
             string username = default;
             Object anyTypeProp = default;
             Object anyTypePropNullable = default;
@@ -276,9 +280,6 @@ namespace Org.OpenAPITools.Model
                 }
             }
 
-#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-#pragma warning disable CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
-
             if (id == null)
                 throw new ArgumentNullException(nameof(id), "Property is required for class User.");
 
@@ -306,10 +307,7 @@ namespace Org.OpenAPITools.Model
             if (objectWithNoDeclaredProps == null)
                 throw new ArgumentNullException(nameof(objectWithNoDeclaredProps), "Property is required for class User.");
 
-#pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-#pragma warning restore CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
-
-            return new User(email, firstName, id, lastName, objectWithNoDeclaredProps, password, phone, userStatus, username, anyTypeProp, anyTypePropNullable, objectWithNoDeclaredPropsNullable);
+            return new User(email, firstName, id.Value, lastName, objectWithNoDeclaredProps, password, phone, userStatus.Value, username, anyTypeProp, anyTypePropNullable, objectWithNoDeclaredPropsNullable);
         }
 
         /// <summary>

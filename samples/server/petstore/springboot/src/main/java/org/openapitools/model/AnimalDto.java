@@ -10,9 +10,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.openapitools.model.BigCatDto;
-import org.openapitools.model.CatDto;
-import org.openapitools.model.DogDto;
 import org.openapitools.jackson.nullable.JsonNullable;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
@@ -44,11 +41,6 @@ public class AnimalDto {
 
   private String color = "red";
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link AnimalDto#AnimalDto(String)}
-   */
-  @Deprecated
   public AnimalDto() {
     super();
   }

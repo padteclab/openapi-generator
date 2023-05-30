@@ -38,6 +38,7 @@ namespace Org.OpenAPITools.Model
         internal NullableShape(Triangle triangle)
         {
             Triangle = triangle;
+            OnCreated();
         }
 
         /// <summary>
@@ -48,7 +49,10 @@ namespace Org.OpenAPITools.Model
         internal NullableShape(Quadrilateral quadrilateral)
         {
             Quadrilateral = quadrilateral;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Gets or Sets Triangle
@@ -78,12 +82,13 @@ namespace Org.OpenAPITools.Model
             sb.Append("}\n");
             return sb.ToString();
         }
+
         /// <summary>
         /// To validate all properties of the instance
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             return this.BaseValidate(validationContext);
         }
@@ -121,13 +126,6 @@ namespace Org.OpenAPITools.Model
 
             JsonTokenType startingTokenType = utf8JsonReader.TokenType;
 
-            Utf8JsonReader triangleReader = utf8JsonReader;
-            bool triangleDeserialized = Client.ClientUtils.TryDeserialize<Triangle>(ref triangleReader, jsonSerializerOptions, out Triangle? triangle);
-
-            Utf8JsonReader quadrilateralReader = utf8JsonReader;
-            bool quadrilateralDeserialized = Client.ClientUtils.TryDeserialize<Quadrilateral>(ref quadrilateralReader, jsonSerializerOptions, out Quadrilateral? quadrilateral);
-
-
             while (utf8JsonReader.Read())
             {
                 if (startingTokenType == JsonTokenType.StartObject && utf8JsonReader.TokenType == JsonTokenType.EndObject && currentDepth == utf8JsonReader.CurrentDepth)
@@ -149,10 +147,12 @@ namespace Org.OpenAPITools.Model
                 }
             }
 
-            if (triangleDeserialized)
+            Utf8JsonReader triangleReader = utf8JsonReader;
+            if (Client.ClientUtils.TryDeserialize<Triangle>(ref triangleReader, jsonSerializerOptions, out Triangle? triangle))
                 return new NullableShape(triangle);
 
-            if (quadrilateralDeserialized)
+            Utf8JsonReader quadrilateralReader = utf8JsonReader;
+            if (Client.ClientUtils.TryDeserialize<Quadrilateral>(ref quadrilateralReader, jsonSerializerOptions, out Quadrilateral? quadrilateral))
                 return new NullableShape(quadrilateral);
 
             throw new JsonException();
@@ -167,10 +167,10 @@ namespace Org.OpenAPITools.Model
         /// <exception cref="NotImplementedException"></exception>
         public override void Write(Utf8JsonWriter writer, NullableShape nullableShape, JsonSerializerOptions jsonSerializerOptions)
         {
-            writer.WriteStartObject();
+            System.Text.Json.JsonSerializer.Serialize(writer, nullableShape.Triangle, jsonSerializerOptions);
 
+            System.Text.Json.JsonSerializer.Serialize(writer, nullableShape.Quadrilateral, jsonSerializerOptions);
 
-            writer.WriteEndObject();
         }
     }
 }

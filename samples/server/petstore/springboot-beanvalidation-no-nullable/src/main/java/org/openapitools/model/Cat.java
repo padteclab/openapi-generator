@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.openapitools.model.Animal;
-import org.openapitools.model.BigCat;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -37,11 +36,6 @@ public class Cat extends Animal {
 
   private Boolean declawed;
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link Cat#Cat(String)}
-   */
-  @Deprecated
   public Cat() {
     super();
   }

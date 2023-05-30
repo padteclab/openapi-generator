@@ -41,7 +41,10 @@ namespace Org.OpenAPITools.Model
         internal Adult(AdultAllOf adultAllOf, string firstName, string lastName, string type) : base(firstName, lastName, type)
         {
             AdultAllOf = adultAllOf;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Gets or Sets AdultAllOf
@@ -87,9 +90,9 @@ namespace Org.OpenAPITools.Model
             Utf8JsonReader adultAllOfReader = utf8JsonReader;
             bool adultAllOfDeserialized = Client.ClientUtils.TryDeserialize<AdultAllOf>(ref utf8JsonReader, jsonSerializerOptions, out AdultAllOf? adultAllOf);
 
-            string firstName = default;
-            string lastName = default;
-            string type = default;
+            string? firstName = default;
+            string? lastName = default;
+            string? type = default;
 
             while (utf8JsonReader.Read())
             {
@@ -133,13 +136,8 @@ namespace Org.OpenAPITools.Model
         /// <exception cref="NotImplementedException"></exception>
         public override void Write(Utf8JsonWriter writer, Adult adult, JsonSerializerOptions jsonSerializerOptions)
         {
-            writer.WriteStartObject();
+            System.Text.Json.JsonSerializer.Serialize(writer, adult.AdultAllOf, jsonSerializerOptions);
 
-            writer.WriteString("firstName", adult.FirstName);
-            writer.WriteString("lastName", adult.LastName);
-            writer.WriteString("$_type", adult.Type);
-
-            writer.WriteEndObject();
         }
     }
 }

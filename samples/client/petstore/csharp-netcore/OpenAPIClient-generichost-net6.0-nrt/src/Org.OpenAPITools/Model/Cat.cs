@@ -38,11 +38,14 @@ namespace Org.OpenAPITools.Model
         /// <param name="className">className</param>
         /// <param name="color">color (default to &quot;red&quot;)</param>
         [JsonConstructor]
-        internal Cat(Dictionary<string, int> dictionary, CatAllOf catAllOf, string className, string color = "red") : base(className, color)
+        internal Cat(Dictionary<string, int> dictionary, CatAllOf catAllOf, string className, string color = @"red") : base(className, color)
         {
             Dictionary = dictionary;
             CatAllOf = catAllOf;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Gets or Sets Dictionary
@@ -96,8 +99,8 @@ namespace Org.OpenAPITools.Model
             Utf8JsonReader catAllOfReader = utf8JsonReader;
             bool catAllOfDeserialized = Client.ClientUtils.TryDeserialize<CatAllOf>(ref utf8JsonReader, jsonSerializerOptions, out CatAllOf? catAllOf);
 
-            string className = default;
-            string color = default;
+            string? className = default;
+            string? color = default;
 
             while (utf8JsonReader.Read())
             {
@@ -138,12 +141,10 @@ namespace Org.OpenAPITools.Model
         /// <exception cref="NotImplementedException"></exception>
         public override void Write(Utf8JsonWriter writer, Cat cat, JsonSerializerOptions jsonSerializerOptions)
         {
-            writer.WriteStartObject();
+            System.Text.Json.JsonSerializer.Serialize(writer, cat.Dictionary, jsonSerializerOptions);
 
-            writer.WriteString("className", cat.ClassName);
-            writer.WriteString("color", cat.Color);
+            System.Text.Json.JsonSerializer.Serialize(writer, cat.CatAllOf, jsonSerializerOptions);
 
-            writer.WriteEndObject();
         }
     }
 }

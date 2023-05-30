@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.openapitools.model.AnimalDto;
-import org.openapitools.model.BigCatDto;
 import org.openapitools.jackson.nullable.JsonNullable;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
@@ -39,11 +38,6 @@ public class CatDto extends AnimalDto {
 
   private Boolean declawed;
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link CatDto#CatDto(String)}
-   */
-  @Deprecated
   public CatDto() {
     super();
   }

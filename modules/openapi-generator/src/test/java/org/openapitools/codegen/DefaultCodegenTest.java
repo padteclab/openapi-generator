@@ -337,10 +337,11 @@ public class DefaultCodegenTest {
         // It is unfortunate that child.getAdditionalProperties() returns null for a V2 schema.
         // We cannot differentiate between 'additionalProperties' not present and
         // additionalProperties: true.
-        Assert.assertNull(map_with_additional_properties_sc.getAdditionalProperties());
+        // UPDATE fixed in swagger parser 2.1.14
+        Assert.assertTrue((Boolean) map_with_additional_properties_sc.getAdditionalProperties());
         addProps = ModelUtils.getAdditionalProperties(openAPI, map_with_additional_properties_sc);
-        Assert.assertNull(addProps);
-        Assert.assertNull(map_with_additional_properties_cp.getAdditionalProperties());
+        Assert.assertEquals(addProps, new Schema());
+        Assert.assertNotNull(map_with_additional_properties_cp.getAdditionalProperties());
 
         // map_without_additional_properties
         // This property has the following inline schema.
@@ -349,7 +350,8 @@ public class DefaultCodegenTest {
         // It is unfortunate that child.getAdditionalProperties() returns null for a V2 schema.
         // We cannot differentiate between 'additionalProperties' not present and
         // additionalProperties: false.
-        Assert.assertNull(map_without_additional_properties_sc.getAdditionalProperties());
+        // UPDATE fixed in swagger parser 2.1.14
+        Assert.assertFalse((Boolean) map_without_additional_properties_sc.getAdditionalProperties());
         addProps = ModelUtils.getAdditionalProperties(openAPI, map_without_additional_properties_sc);
         Assert.assertNull(addProps);
         Assert.assertNull(map_without_additional_properties_cp.getAdditionalProperties());
@@ -426,9 +428,10 @@ public class DefaultCodegenTest {
         // It is unfortunate that child.getAdditionalProperties() returns null for a V2 schema.
         // We cannot differentiate between 'additionalProperties' not present and
         // additionalProperties: true.
-        Assert.assertNull(map_with_additional_properties_sc.getAdditionalProperties());
+        // UPDATE fixed in swagger parser 2.1.14
+        Assert.assertTrue((Boolean) map_with_additional_properties_sc.getAdditionalProperties());
         addProps = ModelUtils.getAdditionalProperties(openAPI, map_with_additional_properties_sc);
-        Assert.assertNull(addProps);
+        Assert.assertEquals(addProps, new Schema());
         Assert.assertNotNull(map_with_additional_properties_cp.getAdditionalProperties());
 
         // map_without_additional_properties
@@ -438,10 +441,11 @@ public class DefaultCodegenTest {
         // It is unfortunate that child.getAdditionalProperties() returns null for a V2 schema.
         // We cannot differentiate between 'additionalProperties' not present and
         // additionalProperties: false.
-        Assert.assertNull(map_without_additional_properties_sc.getAdditionalProperties());
+        // UPDATE fixed in swagger parser 2.1.14
+        Assert.assertFalse((Boolean) map_without_additional_properties_sc.getAdditionalProperties());
         addProps = ModelUtils.getAdditionalProperties(openAPI, map_without_additional_properties_sc);
-        Assert.assertNull(addProps);
-        Assert.assertNotNull(map_without_additional_properties_cp.getAdditionalProperties());
+        Assert.assertEquals(addProps, null);
+        Assert.assertNull(map_without_additional_properties_cp.getAdditionalProperties());
 
         // check of composed schema model
         String schemaName = "Parent";
@@ -862,8 +866,10 @@ public class DefaultCodegenTest {
         Operation operation2 = openAPI.getPaths().get("/example1/plural").getGet();
         CodegenParameter codegenParameter2 = CodegenModelFactory.newInstance(CodegenModelType.PARAMETER);
         codegen.setParameterExampleValue(codegenParameter2, operation2.getParameters().get(0));
-
         Assert.assertEquals(codegenParameter2.example, "An example1 value");
+        // verify examples are available
+        codegen.setParameterExamples(codegenParameter2, operation2.getParameters().get(0));
+        Assert.assertEquals(codegenParameter2.examples.size(), 1);
     }
 
     @Test
@@ -1101,7 +1107,6 @@ public class DefaultCodegenTest {
         cm = codegen.fromModel(modelName, sc);
         hs.clear();
         hs.add(new CodegenDiscriminator.MappedModel("b", codegen.toModelName("B")));
-        hs.add(new CodegenDiscriminator.MappedModel("B", codegen.toModelName("B")));
         hs.add(new CodegenDiscriminator.MappedModel("C", codegen.toModelName("C")));
         Assert.assertEquals(cm.getHasDiscriminatorWithNonEmptyMapping(), true);
         Assert.assertEquals(cm.discriminator.getMappedModels(), hs);
@@ -1585,8 +1590,6 @@ public class DefaultCodegenTest {
         discriminator.setPropertyBaseName(prop);
         discriminator.setMapping(null);
         discriminator.setMappedModels(new HashSet<CodegenDiscriminator.MappedModel>() {{
-            add(new CodegenDiscriminator.MappedModel("DailySubObj", "DailySubObj"));
-            add(new CodegenDiscriminator.MappedModel("SubObj", "SubObj"));
             add(new CodegenDiscriminator.MappedModel("daily", "DailySubObj"));
             add(new CodegenDiscriminator.MappedModel("sub-obj", "SubObj"));
         }});
@@ -1984,8 +1987,6 @@ public class DefaultCodegenTest {
         test.getMapping().put("c", "Child");
         test.getMappedModels().add(new CodegenDiscriminator.MappedModel("a", "Adult"));
         test.getMappedModels().add(new CodegenDiscriminator.MappedModel("c", "Child"));
-        test.getMappedModels().add(new CodegenDiscriminator.MappedModel("Adult", "Adult"));
-        test.getMappedModels().add(new CodegenDiscriminator.MappedModel("Child", "Child"));
         Assert.assertEquals(discriminator, test);
     }
 
@@ -2389,7 +2390,7 @@ public class DefaultCodegenTest {
         assertTrue(names.contains("password"));
         assertTrue(names.contains("passwordConfirmation"));
         assertTrue(names.contains("oldPassword"));
-        
+
         Optional<CodegenParameter> passwordParameter = operation.formParams.stream().filter(p -> "password".equals(p.paramName)).findFirst();
         assertTrue(passwordParameter.isPresent());
         assertTrue(passwordParameter.get().isPassword);
@@ -4175,8 +4176,13 @@ public class DefaultCodegenTest {
         Schema sc = openAPI.getComponents().getSchemas().get(modelName);
         CodegenModel cm = codegen.fromModel(modelName, sc);
 
+        listAppender.stop();
+        testLogger.detachAppender(listAppender);
 
-        List<ILoggingEvent> logsList = listAppender.list;
+        List<ILoggingEvent> logsList = new ArrayList<>(listAppender.list).stream()
+                .filter(log -> Objects.equals(log.getThreadName(), Thread.currentThread().getName()))
+                .collect(Collectors.toList());
+
 
         // JUnit assertions
         assertEquals(16, logsList.size());
@@ -4218,10 +4224,15 @@ public class DefaultCodegenTest {
         Schema sc = openAPI.getComponents().getSchemas().get(modelName);
         CodegenModel cm = codegen.fromModel(modelName, sc);
 
-        List<ILoggingEvent> logsList = listAppender.list;
+        listAppender.stop();
+        testLogger.detachAppender(listAppender);
+
+        List<ILoggingEvent> logsList = new ArrayList<>(listAppender.list).stream()
+                .filter(log -> Objects.equals(log.getThreadName(), Thread.currentThread().getName()))
+                .collect(Collectors.toList());
 
         // JUnit assertions
-        assertEquals(9, logsList.size());
+        assertEquals("Messages: " + logsList.stream().map(ILoggingEvent::getMessage).collect(Collectors.toList()), 9, logsList.size());
         assertEquals("Validation 'minItems' has no effect on schema 'object'. Ignoring!", logsList.get(0)
                 .getMessage());
         assertEquals("Validation 'maxItems' has no effect on schema 'object'. Ignoring!", logsList.get(1)
@@ -4262,10 +4273,15 @@ public class DefaultCodegenTest {
         Schema sc = openAPI.getComponents().getSchemas().get(modelName);
         CodegenModel cm = codegen.fromModel(modelName, sc);
 
-        List<ILoggingEvent> logsList = listAppender.list;
+        listAppender.stop();
+        testLogger.detachAppender(listAppender);
+
+        List<ILoggingEvent> logsList = new ArrayList<>(listAppender.list).stream()
+                .filter(log -> Objects.equals(log.getThreadName(), Thread.currentThread().getName()))
+                .collect(Collectors.toList());
 
         // JUnit assertions
-        assertEquals(8, logsList.size());
+        assertEquals("Messages: " + logsList.stream().map(ILoggingEvent::getMessage).collect(Collectors.toList()), 8, logsList.size());
         assertEquals("Validation 'minItems' has no effect on schema 'string'. Ignoring!", logsList.get(0)
                 .getMessage());
         assertEquals("Validation 'maxItems' has no effect on schema 'string'. Ignoring!", logsList.get(1)
@@ -4304,10 +4320,15 @@ public class DefaultCodegenTest {
         Schema sc = openAPI.getComponents().getSchemas().get(modelName);
         CodegenModel cm = codegen.fromModel(modelName, sc);
 
-        List<ILoggingEvent> logsList = listAppender.list;
+        listAppender.stop();
+        testLogger.detachAppender(listAppender);
+
+        List<ILoggingEvent> logsList = new ArrayList<>(listAppender.list).stream()
+                .filter(log -> Objects.equals(log.getThreadName(), Thread.currentThread().getName()))
+                .collect(Collectors.toList());
 
         // JUnit assertions
-        assertEquals(8, logsList.size());
+        assertEquals("Messages: " + logsList.stream().map(ILoggingEvent::getMessage).collect(Collectors.toList()), 8, logsList.size());
         assertEquals("Validation 'minItems' has no effect on schema 'integer'. Ignoring!", logsList.get(0)
                 .getMessage());
         assertEquals("Validation 'maxItems' has no effect on schema 'integer'. Ignoring!", logsList.get(1)
@@ -4346,10 +4367,15 @@ public class DefaultCodegenTest {
         Schema sc = openAPI.getComponents().getSchemas().get(modelName);
         CodegenModel cm = codegen.fromModel(modelName, sc);
 
-        List<ILoggingEvent> logsList = listAppender.list;
+        listAppender.stop();
+        testLogger.detachAppender(listAppender);
+
+        List<ILoggingEvent> logsList = new ArrayList<>(listAppender.list).stream()
+                .filter(log -> Objects.equals(log.getThreadName(), Thread.currentThread().getName()))
+                .collect(Collectors.toList());
 
         // JUnit assertions
-        assertEquals(0, logsList.size());
+        assertEquals("Messages: " + logsList.stream().map(ILoggingEvent::getMessage).collect(Collectors.toList()), 0, logsList.size());
     }
 
     @Test
@@ -4369,10 +4395,15 @@ public class DefaultCodegenTest {
         Schema sc = openAPI.getComponents().getSchemas().get(modelName);
         CodegenModel cm = codegen.fromModel(modelName, sc);
 
-        List<ILoggingEvent> logsList = listAppender.list;
+        listAppender.stop();
+        testLogger.detachAppender(listAppender);
+
+        List<ILoggingEvent> logsList = new ArrayList<>(listAppender.list).stream()
+                .filter(log -> Objects.equals(log.getThreadName(), Thread.currentThread().getName()))
+                .collect(Collectors.toList());
 
         // JUnit assertions
-        assertEquals(11, logsList.size());
+        assertEquals("Messages: " + logsList.stream().map(ILoggingEvent::getMessage).collect(Collectors.toList()), 11, logsList.size());
         assertEquals("Validation 'minItems' has no effect on schema 'boolean'. Ignoring!", logsList.get(0)
                 .getMessage());
         assertEquals("Validation 'maxItems' has no effect on schema 'boolean'. Ignoring!", logsList.get(1)
@@ -4417,10 +4448,15 @@ public class DefaultCodegenTest {
         Schema sc = openAPI.getComponents().getSchemas().get(modelName);
         CodegenModel cm = codegen.fromModel(modelName, sc);
 
-        List<ILoggingEvent> logsList = listAppender.list;
+        listAppender.stop();
+        testLogger.detachAppender(listAppender);
+
+        List<ILoggingEvent> logsList = new ArrayList<>(listAppender.list).stream()
+                .filter(log -> Objects.equals(log.getThreadName(), Thread.currentThread().getName()))
+                .collect(Collectors.toList());
 
         // JUnit assertions
-        assertEquals(0, logsList.size());
+        assertEquals("Messages: " + logsList.stream().map(ILoggingEvent::getMessage).collect(Collectors.toList()), 0, logsList.size());
     }
 
     public static class FromParameter {
@@ -4587,6 +4623,18 @@ public class DefaultCodegenTest {
         Assert.assertFalse(defaultEnumSchemaProperty.isContainer);
         Assert.assertFalse(defaultEnumSchemaProperty.isPrimitiveType);
         Assert.assertEquals(defaultEnumSchemaProperty.defaultValue, "2");
+
+        // test allOf with a single sub-schema and no default value set in the top level
+        CodegenProperty allOfEnumSchemaProperty = modelWithReferencedSchema.vars.get(5);
+        Assert.assertEquals(allOfEnumSchemaProperty.getName(), "allofMinusnumberMinusenum");
+        Assert.assertFalse(allOfEnumSchemaProperty.isEnum);
+        Assert.assertTrue(allOfEnumSchemaProperty.getIsEnumOrRef());
+        Assert.assertTrue(allOfEnumSchemaProperty.isEnumRef);
+        Assert.assertFalse(allOfEnumSchemaProperty.isInnerEnum);
+        Assert.assertFalse(allOfEnumSchemaProperty.isString);
+        Assert.assertFalse(allOfEnumSchemaProperty.isContainer);
+        Assert.assertFalse(allOfEnumSchemaProperty.isPrimitiveType);
+        Assert.assertEquals(allOfEnumSchemaProperty.defaultValue, "null");
     }
 
     @Test
@@ -4612,4 +4660,36 @@ public class DefaultCodegenTest {
         Assert.assertFalse(inlineEnumSchemaProperty.isPrimitiveType);
     }
 
+    @Test
+    public void testAddOption() {
+        final DefaultCodegen codegen = new DefaultCodegen();
+        codegen.addOption("optionKey", "optionDesc", "defaultValue", Map.of("defaultValue", "defaultDesc"));
+
+        CliOption expected = new CliOption("optionKey", "optionDesc");
+        expected.setDefault("defaultValue");
+        expected.setEnum(Map.of("defaultValue", "defaultDesc"));
+
+        Assert.assertTrue(codegen.cliOptions.contains(expected));
+    }
+
+    @Test
+    public void testAddOptionDefaultNull() {
+        final DefaultCodegen codegen = new DefaultCodegen();
+        codegen.addOption("optionKey", "optionDesc", null);
+
+        CliOption expected = new CliOption("optionKey", "optionDesc");
+
+        Assert.assertTrue(codegen.cliOptions.contains(expected));
+    }
+
+    @Test
+    public void testAddOptionEnumValuesNull() {
+        final DefaultCodegen codegen = new DefaultCodegen();
+        codegen.addOption("optionKey", "optionDesc", "defaultValue");
+
+        CliOption expected = new CliOption("optionKey", "optionDesc");
+        expected.setDefault("defaultValue");
+
+        Assert.assertTrue(codegen.cliOptions.contains(expected));
+    }
 }

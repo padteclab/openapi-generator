@@ -38,6 +38,7 @@ namespace Org.OpenAPITools.Model
         internal FruitReq(AppleReq appleReq)
         {
             AppleReq = appleReq;
+            OnCreated();
         }
 
         /// <summary>
@@ -48,7 +49,10 @@ namespace Org.OpenAPITools.Model
         internal FruitReq(BananaReq bananaReq)
         {
             BananaReq = bananaReq;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Gets or Sets AppleReq
@@ -71,12 +75,13 @@ namespace Org.OpenAPITools.Model
             sb.Append("}\n");
             return sb.ToString();
         }
+
         /// <summary>
         /// To validate all properties of the instance
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             yield break;
         }
@@ -104,13 +109,6 @@ namespace Org.OpenAPITools.Model
 
             JsonTokenType startingTokenType = utf8JsonReader.TokenType;
 
-            Utf8JsonReader appleReqReader = utf8JsonReader;
-            bool appleReqDeserialized = Client.ClientUtils.TryDeserialize<AppleReq>(ref appleReqReader, jsonSerializerOptions, out AppleReq? appleReq);
-
-            Utf8JsonReader bananaReqReader = utf8JsonReader;
-            bool bananaReqDeserialized = Client.ClientUtils.TryDeserialize<BananaReq>(ref bananaReqReader, jsonSerializerOptions, out BananaReq? bananaReq);
-
-
             while (utf8JsonReader.Read())
             {
                 if (startingTokenType == JsonTokenType.StartObject && utf8JsonReader.TokenType == JsonTokenType.EndObject && currentDepth == utf8JsonReader.CurrentDepth)
@@ -132,10 +130,12 @@ namespace Org.OpenAPITools.Model
                 }
             }
 
-            if (appleReqDeserialized)
+            Utf8JsonReader appleReqReader = utf8JsonReader;
+            if (Client.ClientUtils.TryDeserialize<AppleReq>(ref appleReqReader, jsonSerializerOptions, out AppleReq? appleReq))
                 return new FruitReq(appleReq);
 
-            if (bananaReqDeserialized)
+            Utf8JsonReader bananaReqReader = utf8JsonReader;
+            if (Client.ClientUtils.TryDeserialize<BananaReq>(ref bananaReqReader, jsonSerializerOptions, out BananaReq? bananaReq))
                 return new FruitReq(bananaReq);
 
             throw new JsonException();
@@ -150,10 +150,10 @@ namespace Org.OpenAPITools.Model
         /// <exception cref="NotImplementedException"></exception>
         public override void Write(Utf8JsonWriter writer, FruitReq fruitReq, JsonSerializerOptions jsonSerializerOptions)
         {
-            writer.WriteStartObject();
+            System.Text.Json.JsonSerializer.Serialize(writer, fruitReq.AppleReq, jsonSerializerOptions);
 
+            System.Text.Json.JsonSerializer.Serialize(writer, fruitReq.BananaReq, jsonSerializerOptions);
 
-            writer.WriteEndObject();
         }
     }
 }

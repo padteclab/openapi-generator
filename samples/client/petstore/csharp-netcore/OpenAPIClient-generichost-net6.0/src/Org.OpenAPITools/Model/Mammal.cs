@@ -36,6 +36,7 @@ namespace Org.OpenAPITools.Model
         internal Mammal(Whale whale)
         {
             Whale = whale;
+            OnCreated();
         }
 
         /// <summary>
@@ -46,6 +47,7 @@ namespace Org.OpenAPITools.Model
         internal Mammal(Zebra zebra)
         {
             Zebra = zebra;
+            OnCreated();
         }
 
         /// <summary>
@@ -56,7 +58,10 @@ namespace Org.OpenAPITools.Model
         internal Mammal(Pig pig)
         {
             Pig = pig;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Gets or Sets Whale
@@ -91,12 +96,13 @@ namespace Org.OpenAPITools.Model
             sb.Append("}\n");
             return sb.ToString();
         }
+
         /// <summary>
         /// To validate all properties of the instance
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             return this.BaseValidate(validationContext);
         }
@@ -134,16 +140,6 @@ namespace Org.OpenAPITools.Model
 
             JsonTokenType startingTokenType = utf8JsonReader.TokenType;
 
-            Utf8JsonReader whaleReader = utf8JsonReader;
-            bool whaleDeserialized = Client.ClientUtils.TryDeserialize<Whale>(ref whaleReader, jsonSerializerOptions, out Whale whale);
-
-            Utf8JsonReader zebraReader = utf8JsonReader;
-            bool zebraDeserialized = Client.ClientUtils.TryDeserialize<Zebra>(ref zebraReader, jsonSerializerOptions, out Zebra zebra);
-
-            Utf8JsonReader pigReader = utf8JsonReader;
-            bool pigDeserialized = Client.ClientUtils.TryDeserialize<Pig>(ref pigReader, jsonSerializerOptions, out Pig pig);
-
-
             while (utf8JsonReader.Read())
             {
                 if (startingTokenType == JsonTokenType.StartObject && utf8JsonReader.TokenType == JsonTokenType.EndObject && currentDepth == utf8JsonReader.CurrentDepth)
@@ -165,13 +161,16 @@ namespace Org.OpenAPITools.Model
                 }
             }
 
-            if (whaleDeserialized)
+            Utf8JsonReader whaleReader = utf8JsonReader;
+            if (Client.ClientUtils.TryDeserialize<Whale>(ref whaleReader, jsonSerializerOptions, out Whale whale))
                 return new Mammal(whale);
 
-            if (zebraDeserialized)
+            Utf8JsonReader zebraReader = utf8JsonReader;
+            if (Client.ClientUtils.TryDeserialize<Zebra>(ref zebraReader, jsonSerializerOptions, out Zebra zebra))
                 return new Mammal(zebra);
 
-            if (pigDeserialized)
+            Utf8JsonReader pigReader = utf8JsonReader;
+            if (Client.ClientUtils.TryDeserialize<Pig>(ref pigReader, jsonSerializerOptions, out Pig pig))
                 return new Mammal(pig);
 
             throw new JsonException();
@@ -186,10 +185,12 @@ namespace Org.OpenAPITools.Model
         /// <exception cref="NotImplementedException"></exception>
         public override void Write(Utf8JsonWriter writer, Mammal mammal, JsonSerializerOptions jsonSerializerOptions)
         {
-            writer.WriteStartObject();
+            System.Text.Json.JsonSerializer.Serialize(writer, mammal.Whale, jsonSerializerOptions);
 
+            System.Text.Json.JsonSerializer.Serialize(writer, mammal.Zebra, jsonSerializerOptions);
 
-            writer.WriteEndObject();
+            System.Text.Json.JsonSerializer.Serialize(writer, mammal.Pig, jsonSerializerOptions);
+
         }
     }
 }

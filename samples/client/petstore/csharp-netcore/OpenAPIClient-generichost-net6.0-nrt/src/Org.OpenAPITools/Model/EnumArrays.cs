@@ -40,7 +40,10 @@ namespace Org.OpenAPITools.Model
         {
             ArrayEnum = arrayEnum;
             JustSymbol = justSymbol;
+            OnCreated();
         }
+
+        partial void OnCreated();
 
         /// <summary>
         /// Defines ArrayEnum
@@ -56,7 +59,6 @@ namespace Org.OpenAPITools.Model
             /// Enum Crab for value: crab
             /// </summary>
             Crab = 2
-
         }
 
         /// <summary>
@@ -106,7 +108,6 @@ namespace Org.OpenAPITools.Model
             /// Enum Dollar for value: $
             /// </summary>
             Dollar = 2
-
         }
 
         /// <summary>
@@ -134,7 +135,7 @@ namespace Org.OpenAPITools.Model
         public static string JustSymbolEnumToJsonValue(JustSymbolEnum value)
         {
             if (value == JustSymbolEnum.GreaterThanOrEqualTo)
-                return "&gt;&#x3D;";
+                return ">=";
 
             if (value == JustSymbolEnum.Dollar)
                 return "$";
@@ -174,12 +175,13 @@ namespace Org.OpenAPITools.Model
             sb.Append("}\n");
             return sb.ToString();
         }
+
         /// <summary>
         /// To validate all properties of the instance
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             yield break;
         }
@@ -207,8 +209,8 @@ namespace Org.OpenAPITools.Model
 
             JsonTokenType startingTokenType = utf8JsonReader.TokenType;
 
-            List<EnumArrays.ArrayEnumEnum> arrayEnum = default;
-            EnumArrays.JustSymbolEnum justSymbol = default;
+            List<EnumArrays.ArrayEnumEnum>? arrayEnum = default;
+            EnumArrays.JustSymbolEnum? justSymbol = default;
 
             while (utf8JsonReader.Read())
             {
@@ -239,19 +241,13 @@ namespace Org.OpenAPITools.Model
                 }
             }
 
-#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-#pragma warning disable CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
-
             if (justSymbol == null)
                 throw new ArgumentNullException(nameof(justSymbol), "Property is required for class EnumArrays.");
 
             if (arrayEnum == null)
                 throw new ArgumentNullException(nameof(arrayEnum), "Property is required for class EnumArrays.");
 
-#pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
-#pragma warning restore CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
-
-            return new EnumArrays(arrayEnum, justSymbol);
+            return new EnumArrays(arrayEnum, justSymbol.Value);
         }
 
         /// <summary>
