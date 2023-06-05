@@ -65,28 +65,22 @@ void {{classname}}::{{operationIdSnakeCase}}_handler(
   {{#bodyParam}}
   {{^isPrimitiveType}}{{^isContainer}}
   {{baseType}} {{paramName}};{{/isContainer}}{{#isArray}}std::vector<{{items.baseType}}> {{paramName}};{{/isArray}}{{#isMap}}std::map<std::string, {{items.baseType}}> {{paramName}};{{/isMap}}{{/isPrimitiveType}}
-  {{#isPrimitiveType}}
-  {{dataType}} {{paramName}};
-  {{/isPrimitiveType}}
   {{/bodyParam}}
   {{#hasBodyParam}}
   {{#bodyParam}}
+  {{^isPrimitiveType}}
   try {
-    {{^isPrimitiveType}}
     nlohmann::json::parse(reinterpret_cast<const char *>(request)).get_to({{paramName}});{{#isArray}}
     for (const auto& validationParam : {{paramName}})
       validationParam.validate();{{/isArray}}{{^isArray}}
     {{paramName}}.validate();{{/isArray}}
-    {{/isPrimitiveType}}
-    {{#isPrimitiveType}}
-      {{paramName}} = request;
-    {{/isPrimitiveType}}
   } catch (std::exception &e) {
     {{packageName}}Error error_info;
     error_info = this->handleParsingException(e);
     API_RETURN_EINVALID_SOURCE(error_info.source.c_str());
     return;
   }
+  {{/isPrimitiveType}}
   {{/bodyParam}}
   {{/hasBodyParam}}
   this->{{operationIdSnakeCase}}(api, request_type, name, pattern, request_info, request_info_size,
