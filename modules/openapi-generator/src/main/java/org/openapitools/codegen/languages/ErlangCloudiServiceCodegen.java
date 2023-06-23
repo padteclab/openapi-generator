@@ -167,6 +167,8 @@ public class ErlangCloudiServiceCodegen extends DefaultCodegen implements Codege
         supportingFiles.add(new SupportingFile("openapi.mustache", "", toPrivFilePath(this.openApiSpecName, "json")));
         supportingFiles.add(new SupportingFile("cloudi_service.mustache", "", "src" + File.separator + this.packageName + ".erl")); // behaviour
         supportingFiles.add(new SupportingFile("cloudi_service_impl.mustache", "", toSourceFilePath("impl", "erl")));
+        supportingFiles.add(new SupportingFile("cloudi_utils_header.mustache", "", toSourceFilePath("cloudi_utils", "hrl")));
+        supportingFiles.add(new SupportingFile("cloudi_utils.mustache", "", toSourceFilePath("cloudi_utils", "erl")));
         supportingFiles.add(new SupportingFile("cloudi.conf.mustache", "", toPrivCloudiFilePath(this.packageName, "conf")));
         supportingFiles.add(new SupportingFile("README.mustache", "", "README.md")
             .doNotOverwrite());

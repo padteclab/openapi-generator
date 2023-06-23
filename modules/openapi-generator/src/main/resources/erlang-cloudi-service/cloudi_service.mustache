@@ -8,6 +8,7 @@
          cloudi_service_terminate/3]).
 
 -include("{{packageName}}_error.hrl").
+-include("{{packageName}}_cloudi_utils.hrl").
 -include_lib("cloudi_core/include/cloudi_logger.hrl").
 
 -record(state, {
@@ -60,7 +61,7 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
               Dispatcher),
           case validate_cloudi_response(Response, OperationID, ValidatorState) of
             ok -> Response;
-            _ -> make_cloudi_reply({?INTERNAL_SERVER_ERROR, [?EINVALIDRESPONSE]}, State)
+            _ -> ?CLOUDI_REPLY({?INTERNAL_SERVER_ERROR, [?EINVALIDRESPONSE]}, State)
           end;
         {error, Reason, _Req1} ->
           ?LOG_INFO("Invalid request:\n OperationId:~p\n Request:~p\n Reason:~p",
@@ -69,7 +70,7 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
             {invalid_body, _, _} -> ?EINVALID;
             {wrong_param, _, _, _} -> ?EMISSINGFIELD
           end,
-          make_cloudi_reply({?UNPROCESSABLE_ENTITY, [InternalError]}, State)
+          ?CLOUDI_REPLY({?UNPROCESSABLE_ENTITY, [InternalError]}, State)
     end.
 
 cloudi_service_handle_info(Request, State, _Dispatcher) ->
@@ -103,47 +104,11 @@ get_subscription_paths(ValidatorState, Dispatcher) ->
     #{<<"paths">> := Paths} = jesse_state:get_current_schema(ValidatorState),
     maps:fold(fun(Path, Value, AccIn) ->
                     maps:fold(fun(Method, Value1, AccIn1) ->
-                      CloudiPath = make_cloudi_path(Path, Method, Dispatcher),
+                      CloudiPath = {{packageName}}_cloudi_utils:make_cloudi_path(Path, Method, Dispatcher),
                       OperationId = string:titlecase(binary_to_list(maps:get(<<"operationId">>, Value1))),
                       AccIn1 ++ [{CloudiPath, list_to_atom(OperationId)}]
                     end, [], Value) ++ AccIn
                   end, [], Paths).
-
-make_cloudi_path(Path, <<"patch">>, Dispatcher) ->
-  make_cloudi_path1(Path, <<"connect">>, Dispatcher);
-make_cloudi_path(Path, Method, Dispatcher) ->
-  make_cloudi_path1(Path, Method, Dispatcher).
-
-make_cloudi_path1(Path, Method, Dispatcher) ->
-    cloudi_service:prefix(Dispatcher) ++
-        re:replace(binary_to_list(Path),"{[a-zA-Z0-9]*}","?",[global,{return,list}]) ++
-        "/" ++
-        binary_to_list(Method).
-
-make_cloudi_reply({HttpCode, ErrorList}, State) when HttpCode < 200; HttpCode > 299 ->
-  ErrResponse = make_error_response(ErrorList, []),
-  fmt_cloudi_response(HttpCode, ErrResponse, State);
-make_cloudi_reply({HttpCode, Response}, State) ->
-  fmt_cloudi_response(HttpCode, Response, State);
-make_cloudi_reply({HttpCode}, State) ->
-  fmt_cloudi_response(HttpCode, <<>>, State).
-
-fmt_cloudi_response(HttpCode, Response, State) ->
-  {reply,
-   cloudi_request_info:key_value_new(
-     [{<<"status">>, list_to_binary(integer_to_list(HttpCode))},
-      {<<"content-type">>, <<"application/json">>}]),
-   cloudi_x_jsx:encode(Response),
-   State
-  }.
-
-make_error_response([#error{internal_code=InternalCode, title=Title, detail=Detail}|Rest], Acc) ->
-  Error = [{<<"code">>, InternalCode},
-           {<<"title">>, list_to_binary(Title)},
-           {<<"detail">>, list_to_binary(Detail)}],
-  make_error_response(Rest, Acc ++ [Error]);
-make_error_response([], Acc) ->
-  [{<<"errors">>, Acc}].
 
 %TODO: handle query parameters
 parse_cloudi_bindings(Name, Pattern, OperationID) ->

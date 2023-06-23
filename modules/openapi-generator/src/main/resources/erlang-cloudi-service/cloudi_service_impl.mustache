@@ -3,12 +3,12 @@
 -export([cloudi_service_handle_request/11]).
 
 -include("{{packageName}}_error.hrl").
+-include("{{packageName}}_cloudi_utils.hrl").
 
 -record(state,
     {
     }).
 
--define(CLOUDI_REPLY(Tuple, State), networking:make_cloudi_reply(Tuple, State)).
 
 cloudi_service_handle_request(_RequestType, _Name, _Pattern, _RequestInfo,
                               _Request, _Timeout, _Priority, _TransId, _Pid,

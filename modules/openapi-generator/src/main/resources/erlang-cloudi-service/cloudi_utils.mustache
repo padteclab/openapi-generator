@@ -1,0 +1,42 @@
+-module({{packageName}}_cloudi_utils).
+
+-include("{{packageName}}_error.hrl").
+
+-export([make_cloudi_path/3,
+         make_cloudi_reply/2]).
+
+make_cloudi_path(Path, <<"patch">>, Dispatcher) ->
+  make_cloudi_path1(Path, <<"connect">>, Dispatcher);
+make_cloudi_path(Path, Method, Dispatcher) ->
+  make_cloudi_path1(Path, Method, Dispatcher).
+
+make_cloudi_path1(Path, Method, Dispatcher) ->
+    cloudi_service:prefix(Dispatcher) ++
+        re:replace(binary_to_list(Path),"{[a-zA-Z0-9]*}","?",[global,{return,list}]) ++
+        "/" ++
+        binary_to_list(Method).
+
+make_cloudi_reply({HttpCode, ErrorList}, State) when HttpCode < 200; HttpCode > 299 ->
+  ErrResponse = make_error_response(ErrorList, []),
+  fmt_cloudi_response(HttpCode, ErrResponse, State);
+make_cloudi_reply({HttpCode, Response}, State) ->
+  fmt_cloudi_response(HttpCode, Response, State);
+make_cloudi_reply({HttpCode}, State) ->
+  fmt_cloudi_response(HttpCode, <<>>, State).
+
+fmt_cloudi_response(HttpCode, Response, State) ->
+  {reply,
+   cloudi_request_info:key_value_new(
+     [{<<"status">>, list_to_binary(integer_to_list(HttpCode))},
+      {<<"content-type">>, <<"application/json">>}]),
+   cloudi_x_jsx:encode(Response),
+   State
+  }.
+
+make_error_response([#error{internal_code=InternalCode, title=Title, detail=Detail}|Rest], Acc) ->
+  Error = [{<<"code">>, InternalCode},
+           {<<"title">>, list_to_binary(Title)},
+           {<<"detail">>, list_to_binary(Detail)}],
+  make_error_response(Rest, Acc ++ [Error]);
+make_error_response([], Acc) ->
+  [{<<"errors">>, Acc}].
