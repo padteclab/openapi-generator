@@ -26,12 +26,18 @@ cloudi_service_init(_Args, _Prefix, _Timeout, Dispatcher) ->
                       cloudi_service:subscribe(Dispatcher, cloudi_service_name:suffix(cloudi_service:prefix(Dispatcher),CloudiPath)),
                       ?LOG_INFO("Subscribed to path:~p. {{packageName}} Operation Id: ~p", [CloudiPath, OperationId])
                     end, Mapping),
+    cloudi_service:subscribe(Dispatcher, "*"),
 
     {ok, #state{
         validator_state = ValidatorState,
         cloudi_pattern_operation_id_mapping = Mapping
     }}.
 
+% Default handler
+cloudi_service_handle_request(_RequestType, _Name, "{{basePathWithoutHost}}*", _RequestInfo,
+                              _Request, _Timeout, _Priority, _TransId, _Pid,
+                              State, _Dispatcher) ->
+    ?CLOUDI_REPLY({?NOT_FOUND, [?ENOTFOUND]}, State);
 cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
                               Request, Timeout, Priority, TransId, Pid,
                               #state{validator_state = ValidatorState,

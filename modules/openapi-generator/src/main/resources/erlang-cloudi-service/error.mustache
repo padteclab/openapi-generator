@@ -26,3 +26,7 @@
           internal_code = 4,
           title = "Invalid server response",
           detail = "The response body format or status code does not conform to the API specification"}).
+-define(ENOTFOUND, #error{
+          internal_code = 5,
+          title = "Resource Not found",
+          detail = "Could not found the requested resource."}).
