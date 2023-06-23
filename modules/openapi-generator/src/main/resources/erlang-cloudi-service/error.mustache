@@ -22,3 +22,7 @@
           internal_code = 3,
           title = "Validation Failed",
           detail = "The formatting of a field is invalid. Review the documentation for more specific information."}).
+-define(EINVALIDRESPONSE, #error{
+          internal_code = 4,
+          title = "Invalid server response",
+          detail = "The response body format or status code does not conform to the API specification"}).

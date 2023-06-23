@@ -62,7 +62,10 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
               Pid,
               State,
               Dispatcher),
-          Response;
+          case validate_cloudi_response(Response, OperationID, ValidatorState) of
+            ok -> Response;
+            _ -> make_cloudi_reply({?INTERNAL_SERVER_ERROR, [?EINVALIDRESPONSE]}, State)
+          end;
         {error, Reason, _Req1} ->
           InternalError = case Reason of
             {invalid_body, _, _} -> ?EINVALID;
@@ -77,6 +80,26 @@ cloudi_service_handle_info(Request, State, _Dispatcher) ->
 
 cloudi_service_terminate(_Reason, _Timeout, #state{}) ->
     ok.
+
+validate_cloudi_response(Reply, OperationID, ValidatorState) ->
+    try
+      case Reply of
+        {reply, ResponseInfo, Response, _StateNew} ->
+          HeadersOutgoing = cloudi_response_info:key_value_parse(ResponseInfo),
+            case maps:find(<<"status">>, HeadersOutgoing) of
+              {ok, HttpCode} ->
+                _ = {{packageName}}_api:validate_response(OperationID,
+                                                     binary_to_integer(HttpCode),
+                                                     cloudi_x_jsx:decode(Response),
+                                                     ValidatorState),
+                ok;
+              _ -> {error, {no_status_code}}
+            end;
+        _ -> {error, {invalid_reply_tuple}}
+      end
+    catch
+     Exception -> Exception
+    end.
 
 get_subscription_paths(ValidatorState, Dispatcher) ->
     #{<<"paths">> := Paths} = jesse_state:get_current_schema(ValidatorState),

@@ -133,7 +133,7 @@ validate_response('{{operationId}}', {{code}}, Body, ValidatorState) ->
 {{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
 
 validate_response(_OperationID, _Code, _Body, _ValidatorState) ->
-    ok.
+    erlang:throw({wrong_status_code}).
 
 validate_response_body('list', ReturnBaseType, Body, ValidatorState) ->
     [
