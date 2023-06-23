@@ -40,11 +40,7 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
     OperationID = proplists:get_value(Pattern, Mapping),
 
     % Parse bindings
-    BindingParam = [Param || {Param, #{source := binding}} <-
-                             [{P, {{packageName}}_api:request_param_info(OperationID, P)} || P <-
-                              {{packageName}}_api:request_params(OperationID)]],
-    BindingValues = [list_to_binary(V) || V <- cloudi_service_name:parse(Name, Pattern)],
-    Bindings = maps:from_list(lists:zip(BindingParam, BindingValues)),
+    {ok, Bindings} = parse_cloudi_bindings(Name, Pattern, OperationID),
 
     Req0 = #{body => Request, bindings => Bindings},
 
@@ -146,3 +142,12 @@ make_error_response([#error{internal_code=InternalCode, title=Title, detail=Deta
   make_error_response(Rest, Acc ++ [Error]);
 make_error_response([], Acc) ->
   [{<<"errors">>, Acc}].
+
+%TODO: handle query parameters
+parse_cloudi_bindings(Name, Pattern, OperationID) ->
+    BindingParam = [Param || {Param, #{source := binding}} <-
+                             [{P, {{packageName}}_api:request_param_info(OperationID, P)} || P <-
+                              {{packageName}}_api:request_params(OperationID)]],
+    BindingValues = [list_to_binary(V) || V <- cloudi_service_name:parse(Name, Pattern)],
+    Bindings = maps:from_list(lists:zip(BindingParam, BindingValues)),
+    {ok, Bindings}.
