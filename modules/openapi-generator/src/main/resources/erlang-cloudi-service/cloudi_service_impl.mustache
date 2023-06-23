@@ -8,7 +8,9 @@
     {
     }).
 
+-define(CLOUDI_REPLY(Tuple, State), networking:make_cloudi_reply(Tuple, State)).
+
 cloudi_service_handle_request(_RequestType, _Name, _Pattern, _RequestInfo,
                               _Request, _Timeout, _Priority, _TransId, _Pid,
-                              _State, _Dispatcher) ->
-  {?NOT_IMPLEMENTED, [?ENOTIMPLEMENTED]}.
+                              State, _Dispatcher) ->
+  ?CLOUDI_REPLY({?NOT_IMPLEMENTED, [?ENOTIMPLEMENTED]}, State).

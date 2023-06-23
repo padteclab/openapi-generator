@@ -50,7 +50,7 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
 
     case {{packageName}}_api:populate_request(OperationID, Req0, ValidatorState) of
         {ok, Populated, Req1} ->
-          Response0 = {{packageName}}_impl:cloudi_service_handle_request(
+          Response = {{packageName}}_impl:cloudi_service_handle_request(
               RequestType,
               Name,
               Pattern,
@@ -62,25 +62,13 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
               Pid,
               State,
               Dispatcher),
-
-          {HttpCode, Response1} = process_response(Response0),
-            _ = {{packageName}}_api:validate_response(
-                OperationID,
-                HttpCode,
-                Response1,
-                ValidatorState
-            ),
-
-          {Response, ResponseInfo} = fmt_cloudi_response(HttpCode, Response1),
-          {reply, ResponseInfo, Response, State};
-        {error, Reason, Req1} ->
+          Response;
+        {error, Reason, _Req1} ->
           InternalError = case Reason of
             {invalid_body, _, _} -> ?EINVALID;
             {wrong_param, _, _, _} -> ?EMISSINGFIELD
           end,
-          {HttpCode, Response1} = process_response({?UNPROCESSABLE_ENTITY, [InternalError]}),
-          {Response, ResponseInfo} = fmt_cloudi_response(HttpCode, Response1),
-          {reply, ResponseInfo, Response, State}
+          make_cloudi_reply({?UNPROCESSABLE_ENTITY, [InternalError]}, State)
     end.
 
 cloudi_service_handle_info(Request, State, _Dispatcher) ->
@@ -111,23 +99,27 @@ make_cloudi_path1(Path, Method, Dispatcher) ->
         "/" ++
         binary_to_list(Method).
 
-process_response({HttpCode, ErrorList=[#error{}|_]}) ->
-  process_response({HttpCode, ErrorList}, []);
-process_response({HttpCode, Response}) ->
-  {HttpCode, Response};
-process_response({HttpCode}) ->
-  {HttpCode, <<>>}.
+make_cloudi_reply({HttpCode, ErrorList}, State) when HttpCode < 200; HttpCode > 299 ->
+  ErrResponse = make_error_response(ErrorList, []),
+  fmt_cloudi_response(HttpCode, ErrResponse, State);
+make_cloudi_reply({HttpCode, Response}, State) ->
+  fmt_cloudi_response(HttpCode, Response, State);
+make_cloudi_reply({HttpCode}, State) ->
+  fmt_cloudi_response(HttpCode, <<>>, State).
 
-process_response({HttpCode, [#error{internal_code=InternalCode, title=Title, detail=Detail}|Rest]}, Acc) ->
+fmt_cloudi_response(HttpCode, Response, State) ->
+  {reply,
+   cloudi_request_info:key_value_new(
+     [{<<"status">>, list_to_binary(integer_to_list(HttpCode))},
+      {<<"content-type">>, <<"application/json">>}]),
+   cloudi_x_jsx:encode(Response),
+   State
+  }.
+
+make_error_response([#error{internal_code=InternalCode, title=Title, detail=Detail}|Rest], Acc) ->
   Error = [{<<"code">>, InternalCode},
            {<<"title">>, list_to_binary(Title)},
            {<<"detail">>, list_to_binary(Detail)}],
-  process_response({HttpCode, Rest}, Acc ++ [Error]);
-process_response({HttpCode, []}, Acc) ->
-  Errors = [{<<"errors">>, Acc}],
-  {HttpCode, Errors}.
-
-fmt_cloudi_response(HttpCode, Response) ->
-  {cloudi_x_jsx:encode(Response),
-   [{<<"status">>, list_to_binary(integer_to_list(HttpCode))},
-    {<<"content-type">>, <<"application/json">>}]}.
+  make_error_response(Rest, Acc ++ [Error]);
+make_error_response([], Acc) ->
+  [{<<"errors">>, Acc}].
