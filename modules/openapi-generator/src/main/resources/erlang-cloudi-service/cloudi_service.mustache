@@ -52,7 +52,7 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
     Req0 = #{body => Request, bindings => Bindings},
 
     case {{packageName}}_api:populate_request(OperationID, Req0, ValidatorState) of
-        {ok, Populated, Req1} ->
+        {ok, _Populated, _Req1} ->
           Response = {{packageName}}_impl:cloudi_service_handle_request(
               RequestType,
               Name,
