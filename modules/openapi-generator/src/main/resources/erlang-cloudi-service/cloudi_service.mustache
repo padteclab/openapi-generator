@@ -63,6 +63,8 @@ cloudi_service_handle_request(RequestType, Name, Pattern, RequestInfo,
             _ -> make_cloudi_reply({?INTERNAL_SERVER_ERROR, [?EINVALIDRESPONSE]}, State)
           end;
         {error, Reason, _Req1} ->
+          ?LOG_INFO("Invalid request:\n OperationId:~p\n Request:~p\n Reason:~p",
+                    [OperationID, Req0, Reason]),
           InternalError = case Reason of
             {invalid_body, _, _} -> ?EINVALID;
             {wrong_param, _, _, _} -> ?EMISSINGFIELD
