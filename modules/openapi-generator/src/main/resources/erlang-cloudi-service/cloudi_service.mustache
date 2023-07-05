@@ -109,12 +109,15 @@ validate_cloudi_response(Reply, OperationID, ValidatorState) ->
 get_subscription_paths(ValidatorState, Dispatcher) ->
     #{<<"paths">> := Paths} = jesse_state:get_current_schema(ValidatorState),
     maps:fold(fun(Path, Value, AccIn) ->
-                    maps:fold(fun(Method, Value1, AccIn1) ->
-                      CloudiPath = {{packageName}}_cloudi_utils:make_cloudi_path(Path, Method, Dispatcher),
-                      OperationId = string:titlecase(binary_to_list(maps:get(<<"operationId">>, Value1))),
-                      AccIn1 ++ [{CloudiPath, list_to_atom(OperationId)}]
-                    end, [], Value) ++ AccIn
-                  end, [], Paths).
+                    maps:fold(
+                      fun(<<"summary">>, _OperationId, AccIn1) -> AccIn1;
+                         (<<"description">>, _OperationId, AccIn1) -> AccIn1;
+                         (Method, OperationId, AccIn1) ->
+                            CloudiPath = {{packageName}}_cloudi_utils:make_cloudi_path(Path, Method, Dispatcher),
+                            OperId = string:titlecase(binary_to_list(maps:get(<<"operationId">>, OperationId))),
+                            AccIn1 ++ [{CloudiPath, list_to_atom(OperId)}]
+                      end, [], Value) ++ AccIn
+                end, [], Paths).
 
 %TODO: handle query parameters
 parse_cloudi_bindings(Name, Pattern, OperationID) ->
