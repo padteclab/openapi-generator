@@ -93,9 +93,13 @@ validate_cloudi_response(Reply, OperationID, ValidatorState) ->
           HeadersOutgoing = cloudi_response_info:key_value_parse(ResponseInfo),
             case maps:find(<<"status">>, HeadersOutgoing) of
               {ok, HttpCode} ->
+                Body = case Response of
+                  <<>> -> <<>>;
+                  _ -> cloudi_x_jsx:decode(Response)
+                end,
                 _ = {{packageName}}_api:validate_response(OperationID,
                                                      binary_to_integer(HttpCode),
-                                                     cloudi_x_jsx:decode(Response),
+                                                     Body,
                                                      ValidatorState),
                 ok;
               _ -> {error, {no_status_code}}
