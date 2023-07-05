@@ -22,7 +22,7 @@ make_cloudi_reply({HttpCode, ErrorList}, State) when HttpCode < 200; HttpCode > 
 make_cloudi_reply({HttpCode, Response}, State) ->
   fmt_cloudi_response(HttpCode, Response, State);
 make_cloudi_reply({HttpCode}, State) ->
-  fmt_cloudi_response(HttpCode, <<>>, State).
+  fmt_cloudi_response(HttpCode, State).
 
 fmt_cloudi_response(HttpCode, Response, State) ->
   {reply,
@@ -30,6 +30,15 @@ fmt_cloudi_response(HttpCode, Response, State) ->
      [{<<"status">>, list_to_binary(integer_to_list(HttpCode))},
       {<<"content-type">>, <<"application/json">>}]),
    cloudi_x_jsx:encode(Response),
+   State
+  }.
+
+fmt_cloudi_response(HttpCode, State) ->
+  {reply,
+   cloudi_request_info:key_value_new(
+     [{<<"status">>, list_to_binary(integer_to_list(HttpCode))},
+      {<<"content-type">>, <<>>}]),
+   <<>>,
    State
   }.
 
