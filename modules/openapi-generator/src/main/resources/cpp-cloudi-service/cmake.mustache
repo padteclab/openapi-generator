@@ -16,13 +16,13 @@ ExternalProject_Add(NLOHMANN
 
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
-link_directories(/usr/local/lib/cloudi-2.0.5/api/c)
+link_directories(/usr/local/lib/cloudi/api/c)
 {{/addExternalLibs}}
 
 include_directories(model)
 include_directories(api)
 include_directories(impl)
-include_directories(/usr/local/lib/cloudi-2.0.5/api/c)
+include_directories(/usr/local/lib/cloudi/api/c)
 
 file(GLOB SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/api/*.cpp
