@@ -1,4 +1,4 @@
-ExtraDeps = [{cloudi_core, "2.0.5"}].
+ExtraDeps = [].
 CONFIG1 = case lists:keysearch(deps, 1, CONFIG) of
   {value, {deps, Deps}} ->
     NDeps = Deps ++ ExtraDeps,
