@@ -12,7 +12,7 @@ using namespace {{modelNamespace}};
 using json = nlohmann::json;
 using std::to_string;
 
-std::string generateResponseError(int code, const std::string& title, const std::string& detail, const std::string& source) {
+json generateResponseError(int code, const std::string& title, const std::string& detail, const std::string& source) {
   ErrorItem error_item;
   error_item.setCode(code);
   error_item.setTitle(title);
@@ -26,7 +26,7 @@ std::string generateResponseError(int code, const std::string& title, const std:
 
   json j;
   to_json(j, error_response);
-  return to_string(j);
+  return j;
 }
 
 void generateResponseInfo(CloudI::API const &api, int http_code, char const* &response, uint32_t &response_info_size) {

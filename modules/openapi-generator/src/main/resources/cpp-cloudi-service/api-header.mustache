@@ -22,6 +22,9 @@
 namespace {{apiNamespace}}
 {
 
+using json = nlohmann::json;
+using EndpointValidationCallback = std::function<void(int, const json&)>;
+
 class {{declspec}} {{classname}} {
 public:
   explicit {{classname}}(const std::shared_ptr<CloudI::API> &api);
@@ -32,8 +35,10 @@ public:
 
 private:
   const std::shared_ptr<CloudI::API> m_api;
+  std::unordered_map<std::string, EndpointValidationCallback> endpointValidationCallbacksMap;
 
   void setupRoutes();
+  void populateValidateMap();
 
   virtual {{packageName}}Error handleParsingException(const std::exception& ex) const noexcept;
 
@@ -76,6 +81,19 @@ private:
       uint32_t const pid_size) = 0;
   {{/operation}}
 
+  {{#operation}}
+  void {{operationIdSnakeCase}}_validate_response(int status_code, const json& response);
+  {{/operation}}
+
+ protected:
+  void api_return(int status_code, const nlohmann::json &response, CloudI::API const &api,
+                  int const request_type, std::string const &name, std::string const &pattern,
+                  uint32_t timeout, char const *const trans_id, char const *const pid,
+                  uint32_t const pid_size);
+  void _api_return(int status_code, const nlohmann::json &response, CloudI::API const &api,
+                   int const request_type, std::string const &name, std::string const &pattern,
+                   uint32_t timeout, char const *const trans_id, char const *const pid,
+                   uint32_t const pid_size);
 };
 
 } // namespace {{apiNamespace}}

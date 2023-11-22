@@ -8,7 +8,7 @@
 namespace {{apiNamespace}}
 {
 
-std::string generateResponseError(int code, const std::string& title, const std::string& detail, const std::string& source);
+nlohmann::json generateResponseError(int code, const std::string& title, const std::string& detail, const std::string& source);
 void generateResponseInfo(CloudI::API const &api, int http_code, char const* &response, uint32_t &response_info_size);
 
 }
@@ -18,11 +18,18 @@ void generateResponseInfo(CloudI::API const &api, int http_code, char const* &re
   auto it_ = {{packageName}}::Error::ERRORS.find(_internal_code); \
   if (it_ != {{packageName}}::Error::ERRORS.end()) { \
     {{packageName}}Error error_info_ = it_->second; \
-    std::string response_ = generateResponseError(error_info_.code, error_info_.title, error_info_.detail, source_); \
-    uint32_t response_info_size_ = 0; \
-    char const * response_info_; \
-    generateResponseInfo(api, _http_code, response_info_, response_info_size_); \
-    api.return_(request_type, name, pattern, response_info_, response_info_size_, response_.c_str(), response_.size(), timeout, trans_id, pid, pid_size); \
+    json response_ = generateResponseError(error_info_.code, error_info_.title, error_info_.detail, source_); \
+    api_return(_http_code, response_, api, request_type, name, pattern, timeout, trans_id, pid, pid_size); \
+  } \
+} while(0)
+
+#define _API_RETURN_(_http_code, _internal_code, _source) do { \
+  std::string source_(_source); \
+  auto it_ = {{packageName}}::Error::ERRORS.find(_internal_code); \
+  if (it_ != {{packageName}}::Error::ERRORS.end()) { \
+    {{packageName}}Error error_info_ = it_->second; \
+    json response_ = generateResponseError(error_info_.code, error_info_.title, error_info_.detail, source_); \
+    _api_return(_http_code, response_, api, request_type, name, pattern, timeout, trans_id, pid, pid_size); \
   } \
 } while(0)
 
@@ -43,8 +50,15 @@ void generateResponseInfo(CloudI::API const &api, int http_code, char const* &re
 #define API_RETURN_ENOTIMPLEMENTED_SOURCE(_source) \
   do { \
     std::string error_code_ = "ENOTIMPLEMENTED"; \
-    API_RETURN_(501, error_code_, _source); \
+    _API_RETURN_(501, error_code_, _source); \
   } while(0)
 #define API_RETURN_ENOTIMPLEMENTED() API_RETURN_ENOTIMPLEMENTED_SOURCE("")
+
+#define API_RETURN_EINVALIDRESPONSE_SOURCE(_source) \
+  do {                                              \
+    std::string error_code_ = "EINVALIDRESPONSE";    \
+    _API_RETURN_(500, error_code_, _source);         \
+  } while (0)
+#define API_RETURN_EINVALIDRESPONSE() API_RETURN_EINVALIDRESPONSE_SOURCE("")
 
 #endif // {{packageNameUpperCase}}_RESPONSE_H

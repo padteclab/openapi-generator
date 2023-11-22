@@ -20,7 +20,8 @@ const std::map<std::string, {{packageName}}Error> ERRORS = {
   {"ENOTIMPLEMENTED", {1, "Not Implemented Request", "The server does not support the functionality required to fulfill the request", ""}},
   {"EMISSINGFIELD", {2, "Validation Failed", "A required field on a resource has not been set.", ""}},
   {"EINVALID", {3, "Validation Failed", "The formatting of a field is invalid. Review the documentation for more specific information.", ""}},
-  {"ENOTFOUND", {4, "Resource Not found", "Could not found the requested resource.", ""}}
+  {"ENOTFOUND", {4, "Resource Not found", "Could not found the requested resource.", ""}},
+  {"EINVALIDRESPONSE", {5, "Invalid server response", "The response body format or status code does not conform to the API specification", ""}}
 };
 
 }
