@@ -168,6 +168,7 @@ public class CppCloudiServiceCodegen extends AbstractCppCodegen implements Codeg
     supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
     supportingFiles.add(new SupportingFile(
         "cloudi.conf.mustache", "", toPrivCloudiFilePath(this.packageName, "conf")));
+    supportingFiles.add(new SupportingFile("gitignore.mustache", "", ".gitignore"));
 
     if (additionalProperties.containsKey(RESERVED_WORD_PREFIX_OPTION)) {
       reservedWordPrefix = (String) additionalProperties.get(RESERVED_WORD_PREFIX_OPTION);
