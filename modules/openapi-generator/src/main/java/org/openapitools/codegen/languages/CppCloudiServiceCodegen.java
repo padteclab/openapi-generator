@@ -158,10 +158,6 @@ public class CppCloudiServiceCodegen extends AbstractCppCodegen implements Codeg
     }
     additionalProperties.put("packageNameUpperCase", this.packageName.toUpperCase(Locale.ROOT));
 
-    supportingFiles.add(new SupportingFile("api-error-header.mustache", "api", this.packageName + "Error.h"));
-    supportingFiles.add(new SupportingFile("api-response-header.mustache", "api", this.packageName + "Response.h"));
-    supportingFiles.add(new SupportingFile("api-response-source.mustache", "api", this.packageName + "Response.cpp"));
-    supportingFiles.add(new SupportingFile("api-impl-error-header.mustache", "impl", this.packageName + "ErrorImpl.h"));
     supportingFiles.add(
         new SupportingFile("helpers-header.mustache", "model", modelNamePrefix + "Helpers.h"));
     supportingFiles.add(

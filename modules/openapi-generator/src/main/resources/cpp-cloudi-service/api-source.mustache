@@ -43,22 +43,22 @@ void {{classname}}::populateValidateMap() {
 {{/operation}}
 }
 
-{{packageName}}Error {{classname}}::handleParsingException(const std::exception& ex) const noexcept
+cloudi_api_return::ErrorResponse {{classname}}::handleParsingException(const std::exception& ex) const noexcept
 {
   try {
     throw;
   } catch (nlohmann::detail::exception &e) {
-    return {{packageName}}Error{-1, "Bad Request", "", e.what()};
+    return cloudi_api_return::ErrorResponse{-1, "Bad Request", "", e.what()};
   } catch ({{helpersNamespace}}::ValidationException &e) {
-    return {{packageName}}Error{-1, "Bad Request", "", e.what()};
+    return cloudi_api_return::ErrorResponse{-1, "Bad Request", "", e.what()};
   } catch (std::exception &e) {
-    return {{packageName}}Error{-1, "Internal Server Error", "", e.what()};
+    return cloudi_api_return::ErrorResponse{-1, "Internal Server Error", "", e.what()};
   }
 }
 
-{{packageName}}Error {{classname}}::handleOperationException(const std::exception& ex) const noexcept
+cloudi_api_return::ErrorResponse {{classname}}::handleOperationException(const std::exception& ex) const noexcept
 {
-  return {{packageName}}Error{-1, "Internal Server Error", "", ex.what()};
+  return cloudi_api_return::ErrorResponse{-1, "Internal Server Error", "", ex.what()};
 }
 
 {{#operation}}
@@ -83,9 +83,9 @@ void {{classname}}::{{operationIdSnakeCase}}_handler(
       validationParam.validate();{{/isArray}}{{^isArray}}
     {{paramName}}.validate();{{/isArray}}
   } catch (std::exception &e) {
-    {{packageName}}Error error_info;
+    cloudi_api_return::ErrorResponse error_info;
     error_info = this->handleParsingException(e);
-    API_RETURN_EINVALID_SOURCE(error_info.source.c_str());
+    API_RETURN_EUNPROCESSABLEENTITY_SOURCE(error_info.source.c_str());
     return;
   }
   {{/isPrimitiveType}}
@@ -130,47 +130,6 @@ void {{classname}}::{{operationIdSnakeCase}}_validate_response(int status_code, 
   }
 }
 {{/operation}}
-
-void {{classname}}::api_return(int status_code, const json &response,
-                               CloudI::API const &api, int const request_type,
-                               std::string const &name, std::string const &pattern,
-                               uint32_t timeout, char const *const trans_id, char const *const pid,
-                               uint32_t const pid_size) {
-  auto it = endpointValidationCallbacksMap.find(pattern);
-
-  if (it == endpointValidationCallbacksMap.end()) {
-    API_RETURN_EINVALIDRESPONSE();
-    return;
-  }
-
-  EndpointValidationCallback endpointValidationFunction = it->second;
-  try {
-    endpointValidationFunction(status_code, response);
-  } catch (std::exception &e) {
-    API_RETURN_EINVALIDRESPONSE();
-    return;
-  }
-
-  _api_return(status_code, response, api, request_type, name, pattern, timeout, trans_id, pid,
-              pid_size);
-}
-
-void {{classname}}::_api_return(int status_code, const json &response,
-                                CloudI::API const &api, int const request_type,
-                                std::string const &name, std::string const &pattern,
-                                uint32_t timeout, char const *const trans_id, char const *const pid,
-                                uint32_t const pid_size) {
-  // make response
-  std::string response_{to_string(response)};
-
-  // make reponse info
-  uint32_t response_info_size_ = 0;
-  char const *response_info_;
-  generateResponseInfo(api, status_code, response_info_, response_info_size_);
-
-  api.return_(request_type, name, pattern, response_info_, response_info_size_, response_.c_str(),
-              response_.size(), timeout, trans_id, pid, pid_size);
-}
 
 } // namespace {{apiNamespace}}
 

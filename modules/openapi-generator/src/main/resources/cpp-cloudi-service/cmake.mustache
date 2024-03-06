@@ -2,22 +2,13 @@ cmake_minimum_required (VERSION 3.2)
 
 project({{packageName}})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pg -g3" )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -pg -g3" )
+set(PADTEC_INC /usr/include/padtec)
+set(PADTEC_LIB /usr/local/lib/padtec)
 
-{{#addExternalLibs}}
-include(ExternalProject)
-
-set(EXTERNAL_INSTALL_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/external)
-
-ExternalProject_Add(NLOHMANN
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DJSON_BuildTests=OFF
-)
-
-include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
-link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 link_directories(/usr/local/lib/cloudi/api/c)
-{{/addExternalLibs}}
+include_directories(${PADTEC_INC})
+link_directories(${PADTEC_LIB})
 
 include_directories(model)
 include_directories(api)
@@ -32,5 +23,4 @@ file(GLOB SRCS
 )
 
 add_executable(${PROJECT_NAME} ${SRCS} )
-{{#addExternalLibs}}add_dependencies(${PROJECT_NAME} NLOHMANN){{/addExternalLibs}}
-target_link_libraries(${PROJECT_NAME} pthread cloudi)
+target_link_libraries(${PROJECT_NAME} pthread cloudi cloudi-api-return)

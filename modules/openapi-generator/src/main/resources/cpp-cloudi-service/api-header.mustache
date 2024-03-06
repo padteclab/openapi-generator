@@ -12,8 +12,7 @@
 {{^hasModelImport}}#include <nlohmann/json.hpp>{{/hasModelImport}}
 #include <optional>
 #include <utility>
-#include "{{packageName}}Error.h"
-#include "{{packageName}}Response.h"
+#include "cloudi_api_return.h"
 #include "cloudi.hpp"
 
 {{#imports}}{{{import}}}
@@ -40,9 +39,11 @@ private:
   void setupRoutes();
   void populateValidateMap();
 
-  virtual {{packageName}}Error handleParsingException(const std::exception& ex) const noexcept;
+  virtual cloudi_api_return::ErrorResponse handleParsingException(
+      const std::exception &ex) const noexcept;
 
-  virtual {{packageName}}Error handleOperationException(const std::exception& ex) const noexcept;
+  virtual cloudi_api_return::ErrorResponse handleOperationException(
+      const std::exception &ex) const noexcept;
 
   {{#operation}}
   void {{operationIdSnakeCase}}_handler(CloudI::API const &api, int const request_type,
@@ -84,16 +85,6 @@ private:
   {{#operation}}
   void {{operationIdSnakeCase}}_validate_response(int status_code, const json& response);
   {{/operation}}
-
- protected:
-  void api_return(int status_code, const nlohmann::json &response, CloudI::API const &api,
-                  int const request_type, std::string const &name, std::string const &pattern,
-                  uint32_t timeout, char const *const trans_id, char const *const pid,
-                  uint32_t const pid_size);
-  void _api_return(int status_code, const nlohmann::json &response, CloudI::API const &api,
-                   int const request_type, std::string const &name, std::string const &pattern,
-                   uint32_t timeout, char const *const trans_id, char const *const pid,
-                   uint32_t const pid_size);
 };
 
 } // namespace {{apiNamespace}}

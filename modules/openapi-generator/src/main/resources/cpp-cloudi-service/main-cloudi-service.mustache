@@ -20,7 +20,7 @@ int main() {
   assert(thread_count == 1);
   auto api = std::make_shared<CloudI::API>(0);
 
-  {{#apiInfo}}{{#apis}}{{#operations}}
+{{#apiInfo}}{{#apis}}{{#operations}}
   {{classname}}Impl {{classname}}ServiceApi(api);
   {{classname}}ServiceApi.init();{{/operations}}{{/apis}}{{/apiInfo}}
 
